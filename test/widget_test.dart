@@ -5,7 +5,7 @@ import 'package:ambientese/login_screen.dart'; // Certifique-se de que o caminho
 void main() {
   testWidgets('Login screen test', (WidgetTester tester) async {
     // Build the LoginScreen widget.
-    await tester.pumpWidget(MaterialApp(home: LoginScreen()));
+    await tester.pumpWidget(const MaterialApp(home: LoginScreen()));
 
     // Verify that the username and password fields are present.
     expect(find.byType(TextFormField), findsNWidgets(2));

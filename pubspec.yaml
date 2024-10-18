@@ -11,6 +11,8 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.8
+  http: ^0.13.5
+  shared_preferences: ^2.0.0
 
 dev_dependencies:
   flutter_test:
@@ -23,6 +25,13 @@ flutter:
   assets:
 
     - images/background_login.jpg
+    - images/facewhite.png
+    - images/instawhite.png
+    - images/whatswhite.png 
+    - images/logo.png
+# To add assets to your application, add an assets section, like this:
+#   - images/a_dot_burr.jpeg
+#   - images/a_dot_ham.jpeg
   # To add assets to your application, add an assets section, like this:
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
