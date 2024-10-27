@@ -1,3 +1,4 @@
+import 'package:ambientese/main_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -90,6 +91,11 @@ class _LoginFormState extends State<LoginForm> {
             margin: EdgeInsets.only(
                 top: 10.0, right: 10.0, left: 300.0, bottom: 830),
           ),
+        );
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => MainScreen()),
         );
       } else if (response.statusCode == 401) {
         // Falha no login

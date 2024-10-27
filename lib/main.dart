@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'login_screen.dart';
-// Certifique-se de que o caminho está correto // Importa a nova tela de recuperação de senha
 
 void main() {
   runApp(const MyApp());
