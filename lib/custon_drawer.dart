@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 
 class CustomDrawer extends StatelessWidget {
+  final Function(int) onTap;
+  
+  CustomDrawer({required this.onTap});
+
   @override
   Widget build(BuildContext context) {
     return Drawer(
@@ -18,33 +22,30 @@ class CustomDrawer extends StatelessWidget {
               ),
             ),
           ),
-          ListTile(
+          ExpansionTile(
             title: Text('Cadastro', style: TextStyle(fontSize: 18)),
-            onTap: () {
-              Navigator.pop(context);
-              
-            },
+            children: [
+              ListTile(
+                title: Text('Cadastro Empresa'),
+                onTap: () => onTap(0),
+              ),
+              ListTile(
+                title: Text('Cadastro Perguntas'),
+                onTap: () => onTap(1),
+              ),
+            ],
           ),
           ListTile(
             title: Text('Ranking', style: TextStyle(fontSize: 18)),
-            onTap: () {
-              Navigator.pop(context);
-              
-            },
+            onTap: () => onTap(2),
           ),
           ListTile(
             title: Text('Avaliação', style: TextStyle(fontSize: 18)),
-            onTap: () {
-              Navigator.pop(context);
-              
-            },
+            onTap: () => onTap(3),
           ),
           ListTile(
             title: Text('Checklist', style: TextStyle(fontSize: 18)),
-            onTap: () {
-              Navigator.pop(context);
-              
-            },
+            onTap: () => onTap(4),
           ),
         ],
       ),
