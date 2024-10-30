@@ -3,6 +3,7 @@ import 'package:ambientese/header.dart';
 import 'package:ambientese/custon_drawer.dart';
 import 'package:ambientese/cadastro_empresa_1.dart';
 import 'package:ambientese/cadastro_perguntas.dart';
+import 'package:ambientese/cadastro_funcionarios.dart';
 
 class MainScreen extends StatefulWidget {
   @override
@@ -16,6 +17,7 @@ class _MainScreenState extends State<MainScreen> {
   final List<Widget> _screens = [
     CadastroForm(), 
     CadastroPerguntaForm(), 
+    CadastroFuncionarioForm(),
     // RankingScreen(),
     // AvaliacaoScreen(), 
     // ChecklistScreen(),

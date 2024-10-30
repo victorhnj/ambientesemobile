@@ -33,19 +33,23 @@ class CustomDrawer extends StatelessWidget {
                 title: Text('Cadastro Perguntas'),
                 onTap: () => onTap(1),
               ),
+              ListTile(
+                title: Text('Cadastro Funcionários'),
+                onTap: () => onTap(2),
+              ),
             ],
           ),
           ListTile(
             title: Text('Ranking', style: TextStyle(fontSize: 18)),
-            onTap: () => onTap(2),
-          ),
-          ListTile(
-            title: Text('Avaliação', style: TextStyle(fontSize: 18)),
             onTap: () => onTap(3),
           ),
           ListTile(
-            title: Text('Checklist', style: TextStyle(fontSize: 18)),
+            title: Text('Avaliação', style: TextStyle(fontSize: 18)),
             onTap: () => onTap(4),
+          ),
+          ListTile(
+            title: Text('Checklist', style: TextStyle(fontSize: 18)),
+            onTap: () => onTap(5),
           ),
         ],
       ),
