@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:url_launcher/url_launcher.dart';
 
 class LoginScreen extends StatelessWidget {
   @override
@@ -8,23 +9,6 @@ class LoginScreen extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
-        appBar: PreferredSize(
-          preferredSize: Size.fromHeight(70.0),
-          child: AppBar(
-            backgroundColor: Color(0xFF0077C8),
-            title: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                SizedBox(
-                  height: 80, // Aumentado de 60 para 80
-                  child: Image.asset(
-                  'images/logo.png', // Logo da sua aplicação
-                  ),
-                ),
-                ],
-            ),
-          ),
-        ),
         body: Stack(
           children: <Widget>[
             Container(
@@ -32,11 +16,28 @@ class LoginScreen extends StatelessWidget {
                 image: DecorationImage(
                   image: AssetImage(
                       'images/background_login.jpg'), // Imagem de fundo
-                  fit: BoxFit.cover,
+                  fit: BoxFit.cover, // Ajusta a imagem para cobrir toda a tela
                 ),
               ),
             ),
-            LoginForm(), // O formulário de login
+            Column(
+              children: [
+                AppBar(
+                  backgroundColor: Color(0xFF0077C8),
+                  centerTitle: true,
+                  toolbarHeight: 70, // Ajuste a altura conforme necessário
+                  title: Image.asset(
+                    'images/logo.png',
+                    height: 75, // Ajuste a altura conforme necessário
+                  ),
+                ),
+                Expanded(
+                  child: Center(
+                    child: LoginForm(), // O formulário de login
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
@@ -81,30 +82,11 @@ class _LoginFormState extends State<LoginForm> {
 
       if (response.statusCode == 200) {
         // Sucesso no login
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Login Bem-Sucedido!'),
-            backgroundColor: Color(0xFF2ecc71),
-            duration: Duration(seconds: 2),
-            behavior: SnackBarBehavior.floating,
-            margin: EdgeInsets.only(
-                top: 10.0, right: 10.0, left: 300.0, bottom: 830),
-          ),
-        );
       } else if (response.statusCode == 401) {
         // Falha no login
         setState(() {
           _hasError = true;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Usuário ou Senha incorretos!'),
-              backgroundColor: Color.fromARGB(255, 204, 64, 46),
-              duration: Duration(seconds: 2),
-              behavior: SnackBarBehavior.floating,
-              margin: EdgeInsets.only(
-                  top: 10.0, right: 10.0, left: 250.0, bottom: 830),
-            ),
-          );
+          _errorMessage = 'Usuário ou Senha incorretos!';
         });
       } else {
         // Erro interno do servidor
@@ -127,7 +109,7 @@ class _LoginFormState extends State<LoginForm> {
       child: Container(
         padding: const EdgeInsets.all(16.0),
         width: 400.0,
-        height: 500.0,
+        height: 600.0,
         margin: const EdgeInsets.symmetric(horizontal: 40.0),
         decoration: BoxDecoration(
           color: Colors.white.withOpacity(0.9),
@@ -137,6 +119,8 @@ class _LoginFormState extends State<LoginForm> {
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
+            SizedBox(
+                height: 60.0), // Espaçamento no topo aumentado de 20 para 40
             // Adicionando o texto "LOGIN" aqui
             Text(
               'LOGIN',
@@ -152,6 +136,7 @@ class _LoginFormState extends State<LoginForm> {
               decoration: InputDecoration(
                 labelText: 'Usuário ou Email',
                 labelStyle: TextStyle(
+                    fontSize: 15.0,
                     color: _hasError
                         ? Colors.red
                         : Color.fromARGB(255, 54, 54, 54)),
@@ -199,6 +184,23 @@ class _LoginFormState extends State<LoginForm> {
               ),
               obscureText: true,
             ),
+            SizedBox(height: 16.0),
+            Align(
+              alignment: Alignment.centerRight,
+              child: GestureDetector(
+                onTap: () {
+                  // Ação para 'Esqueci minha senha'
+                },
+                child: Text(
+                  'Esqueci minha senha',
+                  style: TextStyle(
+                    color: Colors.blue,
+                    fontSize: 16.0,
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(height: 16.0),
             if (_hasError)
               Padding(
                 padding: const EdgeInsets.only(top: 8.0),
@@ -208,77 +210,92 @@ class _LoginFormState extends State<LoginForm> {
                 ),
               ),
             SizedBox(height: 10),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: () {
-                  // Ação para 'Esqueci minha senha'
-                },
-                child: Text(
-                  'Esqueci minha senha',
-                  style: TextStyle(color: Colors.black),
+            if (_isLoading)
+              Center(
+                child: CircularProgressIndicator(
+                  color: Color(0xFF1681CA),
                 ),
-                style: ButtonStyle(
-                  overlayColor:
-                      MaterialStateProperty.all(Colors.grey.withOpacity(0.2)),
-                ),
-              ),
-            ),
-            SizedBox(height: 20),
-            _isLoading
-                ? CircularProgressIndicator()
-                : ElevatedButton(
+              )
+            else
+              Column(
+                children: [
+                  ElevatedButton(
                     onPressed: _login,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Color(0xFF1681CA),
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 40, // Reduzido de 50 para 40
+                          vertical: 20), // Aumenta o tamanho do botão
+                      shape: RoundedRectangleBorder(
+                        borderRadius:
+                            BorderRadius.circular(8.0), // Menos arredondado
+                      ),
                     ),
                     child: Text(
                       'Entrar',
                       style: TextStyle(color: Colors.white, fontSize: 18.0),
                     ),
                   ),
+                ],
+              ),
             SizedBox(height: 40), // Aumenta o espaçamento antes dos ícones
+            Spacer(
+              //adicione uma borda na parte de cima
+              flex: 10,
+            ), // Adiciona um espaço flexível
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Spacer(), // Adiciona um espaço flexível
                 IconButton(
                   icon: ImageIcon(
-                    AssetImage('images/whatswhite.png'),
-                    size: 52.42, // 43.68 * 1.2
-                    color: Colors.green, // Cor verde para WhatsApp
+                  AssetImage('images/whatswhite.png'),
+                  size: 52.42, // 43.68 * 1.2
+                  color: Colors.grey[600], // Cor cinza escuro meio claro
                   ),
-                  onPressed: () {
-                    // Ação para WhatsApp
+                  onPressed: () async {
+                  const url = 'https://api.whatsapp.com/send?phone=554430380838&text=Mensagem%20atrav%C3%A9s%20do%20site'; // Substitua pelo link desejado
+                  if (await canLaunch(url)) {
+                    await launch(url);
+                  } else {
+                    throw 'Could not launch $url';
+                  }
                   },
                 ),
-                SizedBox(width: 30), // Espaçamento de 30px
+                SizedBox(width: 60), // Espaçamento de 60px
                 IconButton(
                   icon: ImageIcon(
                     AssetImage('images/instawhite.png'),
                     size: 52.42, // 43.68 * 1.2
-                    color: Colors.orange, // Cor laranja para Instagram
+                    color: Colors.grey[600], // Cor cinza escuro meio claro
                   ),
-                  onPressed: () {
-                    // Ação para Instagram
+                  onPressed: () async {
+                  const url = 'https://www.instagram.com/ambientese.eng/'; // Substitua pelo link desejado
+                  if (await canLaunch(url)) {
+                    await launch(url);
+                  } else {
+                    throw 'Could not launch $url';
+                  }
                   },
                 ),
-                SizedBox(width: 30), // Espaçamento de 30px
+                SizedBox(width: 60), // Espaçamento de 60px
                 IconButton(
                   icon: ImageIcon(
                     AssetImage('images/facewhite.png'),
                     size: 52.42, // 43.68 * 1.2
-                    color: Colors.blue, // Cor azul para Facebook
+                    color: Colors.grey[600], // Cor cinza escuro meio claro
                   ),
-                  onPressed: () {
-                    // Ação para Facebook
+                  onPressed: () async {
+                  const url = 'https://www.facebook.com/ambientese.eng/'; // Substitua pelo link desejado
+                  if (await canLaunch(url)) {
+                    await launch(url);
+                  } else {
+                    throw 'Could not launch $url';
+                  }
                   },
                 ),
-                Spacer(), // Adiciona um espaço flexível
               ],
             ),
+            Spacer(), // Adiciona um espaço flexível
           ],
         ),
       ),
