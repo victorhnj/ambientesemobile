@@ -9,12 +9,16 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: CadastroForm(),
+      home: CadastroForm(onTap: (int ) {  },),
     );
   }
 }
 
 class CadastroForm extends StatefulWidget {
+  final Function(int) onTap;
+
+  CadastroForm({required this.onTap});
+
   @override
   _CadastroFormState createState() => _CadastroFormState();
 }
@@ -153,6 +157,7 @@ class _CadastroFormState extends State<CadastroForm> {
             Expanded(
               child: ElevatedButton(
                 onPressed: () {
+                  widget.onTap(0);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red,
@@ -281,11 +286,7 @@ class _CadastroFormState extends State<CadastroForm> {
             Expanded(
               child: ElevatedButton(
                 onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    setState(() {
-                      _currentIndex = 0;
-                    });
-                  }
+                  widget.onTap(0);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red,
@@ -396,6 +397,7 @@ class _CadastroFormState extends State<CadastroForm> {
             Expanded(
               child: ElevatedButton(
                 onPressed: () {
+                    widget.onTap(0);
                     setState(() {
                       _currentIndex = 0;
                     });
