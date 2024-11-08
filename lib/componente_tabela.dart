@@ -5,10 +5,13 @@ import 'main_screen.dart';
 
 class TabelaGenerica extends StatelessWidget {
   final List<String> colunas;
-  final List<List<dynamic>> dados;
+  final List<Map<String, dynamic>> dados;
   final String tituloDoFormulario;
   final Function(int) onEdit;
   final Function(int) onDelete;
+  final VoidCallback onPageBack;
+  final VoidCallback onPageForward;
+  final int indexTelaFormulario;
 
   final Function(int) onTap;
 
@@ -18,7 +21,10 @@ class TabelaGenerica extends StatelessWidget {
     required this.tituloDoFormulario,
     required this.onEdit,
     required this.onDelete,
-    required this.onTap
+    required this.onTap, 
+    required this.onPageBack, 
+    required this.onPageForward,
+    required this.indexTelaFormulario
   });
 
   @override
@@ -64,7 +70,9 @@ class TabelaGenerica extends StatelessWidget {
             child: Row(
               children: [
                 ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    onTap(indexTelaFormulario);
+                  },
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
                     child: Text(
@@ -120,76 +128,71 @@ class TabelaGenerica extends StatelessWidget {
                 ),
                 child: SingleChildScrollView(
                   scrollDirection: Axis.vertical, // Enables horizontal scrolling for many columns
-                  child: DataTable(
-                    columnSpacing: 8.0, // Space between columns
-                    headingRowColor: MaterialStateColor.resolveWith((states) => Colors.grey.shade200),
-                    dataRowHeight: 40.0, // Row height
-                    columns: [
-                      ...colunas.map(
-                        (coluna) => DataColumn(
-                          label: Text(
-                            coluna,
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.0), // Smaller font for headers
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal, // Enables horizontal scrolling for many columns
+                      child: DataTable(
+                        columnSpacing: 8.0, // Space between columns
+                        headingRowColor: MaterialStateColor.resolveWith((states) => Colors.grey.shade200),
+                        dataRowHeight: 40.0, // Row height
+                        columns: [
+                          ...colunas.map(
+                            (coluna) => DataColumn(
+                              label: Text(
+                                coluna,
+                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.0), // Smaller font for headers
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                      DataColumn(
-                        label: Text(
-                          'Ações',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.0),
-                        ),
-                      ),
-                    ],
-                    rows: List<DataRow>.generate(
-                      dados.length,
-                      (index) {
-                        final linha = dados[index];
-                        final corDeFundo = index.isEven ? Colors.white : Colors.blue.shade50;
+                          DataColumn(
+                            label: Text(
+                              'Ações',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.0),
+                            ),
+                          ),
+                        ],
+                        rows: List<DataRow>.generate(
+                          dados.length,
+                          (index) {
+                            final linha = dados[index];
+                            final corDeFundo = index.isEven ? Colors.white : Colors.blue.shade50;
 
-                        return DataRow(
-                          color: MaterialStateColor.resolveWith((states) => corDeFundo),
-                          cells: [
-                            ...linha.map(
-                              (celula) => DataCell(
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 4.0), // Minimized padding
-                                  child: Text(
-                                    celula.toString(),
-                                    overflow: TextOverflow.ellipsis, // Truncate text if too long
-                                    style: TextStyle(fontSize: 12.0), // Reduced font size for cell data
+                            return DataRow(
+                              color: MaterialStateColor.resolveWith((states) => corDeFundo),
+                              cells: [
+                                ...colunas.map((coluna) => DataCell(
+                                  Text(
+                                    linha[coluna]?.toString() ?? '', // Safely access the data by key
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                )).toList(),
+                                DataCell(
+                                  Row(
+                                    children: [
+                                      IconButton(
+                                        icon: Icon(Icons.edit, color: Colors.blue),
+                                        onPressed: () => onEdit(linha['id']), // Passes ID to edit
+                                      ),
+                                      IconButton(
+                                        icon: Icon(Icons.delete, color: Colors.red),
+                                        onPressed: () {
+                                          showDeleteConfirmation(
+                                            context,
+                                            linha[colunas[0]] ?? 'Item', // Show the name or fallback identifier
+                                            () {
+                                              onDelete(linha['id']); // Passes ID to delete
+                                            },
+                                          );
+                                        },
+                                      ),
+                                    ],
                                   ),
                                 ),
-                              ),
-                            ),
-                            DataCell(
-                              Row(
-                                children: [
-                                  IconButton(
-                                    icon: Icon(Icons.edit, color: Colors.blue, size: 18.0), // Reduced icon size
-                                    onPressed: () {
-                                      onTap(1);
-                                    },
-                                  ),
-                                  IconButton(
-                                    icon: Icon(Icons.delete, color: Colors.red, size: 18.0), // Reduced icon size
-                                    onPressed: () {
-                                      showDeleteConfirmation(
-                                        context,
-                                        'Nome da Empresa', // Pass the actual company name here
-                                        () {
-                                          // Perform the delete action
-                                        },
-                                      );
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                  ),
+                              ],
+                            );
+                          },
+                        ),                        
+                      ),
+                  )
                 ),
               ),
             ),
@@ -211,7 +214,7 @@ class TabelaGenerica extends StatelessWidget {
                   ),
                   child: IconButton(
                     icon: Icon(Icons.arrow_back, color: Colors.grey), // Cor do ícone desativado
-                    onPressed: () {},
+                    onPressed: onPageBack,
                   ),
                 ),
                 SizedBox(width: 8), // Espaçamento entre os botões
@@ -223,7 +226,7 @@ class TabelaGenerica extends StatelessWidget {
                   ),
                   child: IconButton(
                     icon: Icon(Icons.arrow_forward, color: Colors.blue), // Cor do ícone ativo
-                    onPressed: () {},
+                    onPressed: onPageForward,
                   ),
                 ),
               ],

@@ -7,6 +7,15 @@
 
 # The following line activates a set of recommended lints for Flutter apps,
 # packages, and plugins designed to encourage good coding practices.
+analyzer:
+  errors:
+    sort_child_properties_last: ignore
+    prefer_const_constructors: ignore
+    use_build_context_synchronously: ignore
+    avoid_print: ignore
+    use_key_in_widget_constructors: ignore ignore
+    avoid_types_as_parameter_names: ignore
+    library_private_types_in_public_api: ignore
 include: package:flutter_lints/flutter.yaml
 
 linter:

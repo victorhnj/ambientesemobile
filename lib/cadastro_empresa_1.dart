@@ -16,8 +16,10 @@ class MyApp extends StatelessWidget {
 
 class CadastroForm extends StatefulWidget {
   final Function(int) onTap;
+  final Map<String, dynamic>? initialData;
+  final void Function(Map<String, dynamic> updatedData, int indexTelaFormulario)? onSave;
 
-  CadastroForm({required this.onTap});
+  CadastroForm({required this.onTap, this.initialData,  this.onSave});
 
   @override
   _CadastroFormState createState() => _CadastroFormState();
@@ -32,6 +34,43 @@ class _CadastroFormState extends State<CadastroForm> {
   final TextEditingController _cnpjController = TextEditingController();
   final TextEditingController _cepController = TextEditingController();
   final TextEditingController _ufController = TextEditingController();
+
+  final TextEditingController _inscricaoSocialController = TextEditingController();
+  final TextEditingController _telefoneEmpresasController = TextEditingController();
+  final TextEditingController _cidadeController = TextEditingController();
+  final TextEditingController _bairroController = TextEditingController();
+  final TextEditingController _logradouroController = TextEditingController();
+  final TextEditingController _numeroController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _ramoController = TextEditingController();
+  String? _porteSelecionado;
+
+  final TextEditingController _nomeSolicitanteController = TextEditingController();
+  final TextEditingController _telefoneSolicitanteController = TextEditingController();
+
+
+@override
+  void initState() {
+    super.initState();
+    if (widget.initialData != null) {
+      _nomeFantasiaController.text = widget.initialData!['nomeFantasia'] ?? '';
+      _razaoSocialController.text = widget.initialData!['razaoSocial'] ?? '';
+      _cnpjController.text = widget.initialData!['cnpj'] ?? '';
+      _inscricaoSocialController.text = widget.initialData!['inscricaoSocial'] ?? '';
+      _telefoneEmpresasController.text = widget.initialData!['telefoneEmpresas'] ?? '';
+      _cepController.text = widget.initialData!['endereco']?['cep'] ?? '';
+      _ufController.text = widget.initialData!['endereco']?['uf'] ?? '';
+      _cidadeController.text = widget.initialData!['endereco']?['cidade'] ?? '';
+      _bairroController.text = widget.initialData!['endereco']?['bairro'] ?? '';
+      _logradouroController.text = widget.initialData!['endereco']?['logradouro'] ?? '';
+      _numeroController.text = widget.initialData!['endereco']!['numero'].toString();
+      _emailController.text = widget.initialData!['email'] ?? '';
+      _ramoController.text = widget.initialData!['ramo'] ?? '';
+      _porteSelecionado = widget.initialData!['porteEmpresas'];
+      _nomeSolicitanteController.text = widget.initialData!['nomeSolicitante'] ?? '';
+      _telefoneSolicitanteController.text = widget.initialData!['telefoneSolicitante'] ?? '';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -117,6 +156,7 @@ class _CadastroFormState extends State<CadastroForm> {
         ),
         SizedBox(height: height * 0.02),
         TextFormField(
+          controller: _inscricaoSocialController,
           decoration: InputDecoration(
             labelText: 'Inscrição Social',
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
@@ -124,6 +164,7 @@ class _CadastroFormState extends State<CadastroForm> {
         ),
         SizedBox(height: height * 0.02),
         TextFormField(
+          controller: _telefoneEmpresasController,
           decoration: InputDecoration(
             labelText: 'Telefone da Empresa',
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
@@ -131,6 +172,7 @@ class _CadastroFormState extends State<CadastroForm> {
         ),
         SizedBox(height: height * 0.02),
         DropdownButtonFormField<String>(
+          value: _porteSelecionado,
           decoration: InputDecoration(
             labelText: 'Porte da Empresa',
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
@@ -141,10 +183,15 @@ class _CadastroFormState extends State<CadastroForm> {
                     value: label,
                   ))
               .toList(),
-          onChanged: (value) {},
+          onChanged: (value) {
+            setState(() {
+              _porteSelecionado = value;
+            });
+          },
         ),
         SizedBox(height: height * 0.02),
         TextFormField(
+          controller: _ramoController,
           decoration: InputDecoration(
             labelText: 'Ramo',
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
@@ -235,7 +282,7 @@ class _CadastroFormState extends State<CadastroForm> {
         Text('Endereço', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
         SizedBox(height: height * 0.02),
         TextFormField(
-          controller: _nomeFantasiaController,
+          controller: _cepController,
           decoration: InputDecoration(
             labelText: 'CEP',
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
@@ -243,7 +290,7 @@ class _CadastroFormState extends State<CadastroForm> {
         ),
         SizedBox(height: height * 0.02),
         TextFormField(
-          controller: _razaoSocialController,
+          controller: _ufController,
           decoration: InputDecoration(
             labelText: 'UF',
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
@@ -251,7 +298,7 @@ class _CadastroFormState extends State<CadastroForm> {
         ),
         SizedBox(height: height * 0.02),
         TextFormField(
-          controller: _cnpjController,
+          controller: _cidadeController,
           decoration: InputDecoration(
             labelText: 'Cidade',
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
@@ -259,6 +306,7 @@ class _CadastroFormState extends State<CadastroForm> {
         ),
         SizedBox(height: height * 0.02),
         TextFormField(
+          controller: _bairroController,
           decoration: InputDecoration(
             labelText: 'Bairro',
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
@@ -266,6 +314,7 @@ class _CadastroFormState extends State<CadastroForm> {
         ),
         SizedBox(height: height * 0.02),
         TextFormField(
+          controller: _logradouroController,
           decoration: InputDecoration(
             labelText: 'Rua',
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
@@ -274,6 +323,7 @@ class _CadastroFormState extends State<CadastroForm> {
         
         SizedBox(height: height * 0.02),
         TextFormField(
+          controller: _numeroController,
           decoration: InputDecoration(
             labelText: 'Número',
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
@@ -368,7 +418,7 @@ class _CadastroFormState extends State<CadastroForm> {
         Text('Informações pessoais', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
         SizedBox(height: height * 0.02),
         TextFormField(
-          controller: _nomeFantasiaController,
+          controller: _nomeSolicitanteController,
           decoration: InputDecoration(
             labelText: 'Nome do solicitante',
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
@@ -376,7 +426,7 @@ class _CadastroFormState extends State<CadastroForm> {
         ),
         SizedBox(height: height * 0.02),
         TextFormField(
-          controller: _razaoSocialController,
+          controller: _telefoneSolicitanteController,
           decoration: InputDecoration(
             labelText: 'Telefone do solicitante',
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
@@ -384,7 +434,7 @@ class _CadastroFormState extends State<CadastroForm> {
         ),
         SizedBox(height: height * 0.02),
         TextFormField(
-          controller: _cnpjController,
+          controller: _emailController,
           decoration: InputDecoration(
             labelText: 'Email',
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
@@ -397,11 +447,11 @@ class _CadastroFormState extends State<CadastroForm> {
             Expanded(
               child: ElevatedButton(
                 onPressed: () {
-                    widget.onTap(0);
-                    setState(() {
-                      _currentIndex = 0;
-                    });
-                  },
+                  widget.onTap(0);
+                  setState(() {
+                    _currentIndex = 0;
+                  });
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red, 
                   shape: RoundedRectangleBorder(
@@ -447,9 +497,30 @@ class _CadastroFormState extends State<CadastroForm> {
               child: ElevatedButton(
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Informações Pessoais salvas!')),
-                    );
+                    final updatedData = {
+                      'nomeFantasia': _nomeFantasiaController.text,
+                      'razaoSocial': _razaoSocialController.text,
+                      'cnpj': _cnpjController.text,
+                      'inscricaoSocial': _inscricaoSocialController.text,
+                      'telefoneEmpresas': _telefoneEmpresasController.text,
+                      'endereco': {
+                        'cep': _cepController.text,
+                        'uf': _ufController.text,
+                        'cidade': _cidadeController.text,
+                        'bairro': _bairroController.text,
+                        'logradouro': _logradouroController.text,
+                        'numero': int.tryParse(_numeroController.text) ?? 0, 
+                      },
+                      'email': _emailController.text,
+                      'ramo': _ramoController.text,
+                      'porteEmpresas': _porteSelecionado,
+                      'nomeSolicitante': _nomeSolicitanteController.text,
+                      'telefoneSolicitante': _telefoneSolicitanteController.text,
+                    };
+
+                    if (widget.onSave != null) {
+                      widget.initialData == null ? widget.onSave!(updatedData, 0) : widget.onSave!(updatedData, 1);
+                    }
                   }
                 },
                 style: ElevatedButton.styleFrom(
@@ -460,7 +531,7 @@ class _CadastroFormState extends State<CadastroForm> {
                   padding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                 ),
                 child: Text(
-                  'Salvar',
+                  widget.initialData == null ? 'Adicionar' : 'Salvar',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 14,

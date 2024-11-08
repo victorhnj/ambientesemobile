@@ -6,21 +6,38 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: CadastroPerguntaForm(),
+      home: CadastroPerguntaForm(onTap: (int ) {  },),
     );
   }
 }
 
 class CadastroPerguntaForm extends StatefulWidget {
+  final Function(int) onTap;
+  final Map<String, dynamic>? initialData;
+  final void Function(Map<String, dynamic> updatedData, int indexTelaFormulario)? onSave;
+
+  CadastroPerguntaForm({required this.onTap, this.initialData,  this.onSave});
+
   @override
   _CadastroPerguntaFormState createState() => _CadastroPerguntaFormState();
 }
 
 class _CadastroPerguntaFormState extends State<CadastroPerguntaForm> {
+  int _currentIndex = 0;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
   final TextEditingController _perguntaController = TextEditingController();
 
   String? _eixoSelecionado;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialData != null) {
+      _perguntaController.text = widget.initialData!['descricao'] ?? '';
+      _eixoSelecionado = widget.initialData!['eixo'];
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,11 +80,12 @@ class _CadastroPerguntaFormState extends State<CadastroPerguntaForm> {
                       ),
                       SizedBox(height: height * 0.02),
                       DropdownButtonFormField<String>(
+                        value: _eixoSelecionado,
                         decoration: InputDecoration(
                           labelText: 'Eixo da pergunta',
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
                         ),
-                        items: ['Governamental', 'Empresarial', 'Educacional'] // Exemplo de opções
+                        items: ['Ambiental', 'Governamental', 'Social'] // Exemplo de opções
                             .map((label) => DropdownMenuItem(
                                   child: Text(label),
                                   value: label,
@@ -107,7 +125,7 @@ class _CadastroPerguntaFormState extends State<CadastroPerguntaForm> {
                           Expanded(
                             child: ElevatedButton(
                               onPressed: () {
-                                // Lógica para cancelar
+                                widget.onTap(1);
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.red,
@@ -127,7 +145,14 @@ class _CadastroPerguntaFormState extends State<CadastroPerguntaForm> {
                             child: ElevatedButton(
                               onPressed: () {
                                 if (_formKey.currentState!.validate()) {
-                                  // Lógica para adicionar a pergunta
+                                  final updatedData = {
+                                    'descricao': _perguntaController.text,
+                                    'eixo': _eixoSelecionado,
+                                  };
+
+                                  if (widget.onSave != null) {
+                                    widget.initialData == null ? widget.onSave!(updatedData, 0) : widget.onSave!(updatedData, 1);
+                                  }
                                 }
                               },
                               style: ElevatedButton.styleFrom(
