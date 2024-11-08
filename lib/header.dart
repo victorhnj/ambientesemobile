@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 
 class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
+  final Function(int) onTap;
+
+  CustomHeader({required this.onTap});
+
   @override
   Size get preferredSize => Size.fromHeight(70.0);
 
@@ -22,14 +26,19 @@ class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
                 Scaffold.of(context).openDrawer();
               },
             ),
-            Container(
+            GestureDetector(
+              onTap: () {
+              onTap(6);
+              },
+              child: Container(
               padding: EdgeInsets.only(right: 16.0),
               child: SizedBox(
                 height: 60,
                 child: Image.asset(
-                  'images/logo.png',
-                  fit: BoxFit.contain,
+                'images/logo.png',
+                fit: BoxFit.contain,
                 ),
+              ),
               ),
             ),
           ],
