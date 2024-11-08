@@ -40,7 +40,10 @@ class _MainScreenState extends State<MainScreen> {
           onTap: _onItemTapped,
           onPageBack: _decrementPage,
           onPageForward: _incrementPage,
-          indexTelaFormulario: 3,
+          indexTelaFormulario: 3, 
+          onSearchIconTap: (String value) {
+            _fetchDataEmpresa(value);
+          },
         ),
         TabelaGenerica(
           colunas: colunas,
@@ -56,6 +59,9 @@ class _MainScreenState extends State<MainScreen> {
           onPageBack: _decrementPage,
           onPageForward: _incrementPage,
           indexTelaFormulario: 4,
+          onSearchIconTap: (String value) {
+            _fetchDataPerguntas(value);
+          },
         ),
         TabelaGenerica(
           colunas: colunas,
@@ -71,6 +77,9 @@ class _MainScreenState extends State<MainScreen> {
           onPageBack: _decrementPage,
           onPageForward: _incrementPage,
           indexTelaFormulario: 5,
+          onSearchIconTap: (String value) {
+            _fetchDataEmpresa(value);
+          },
         ),
         CadastroForm(onTap: _onItemTapped, initialData: initialData, onSave: (updatedData, isEdit) {
           (isEdit == 1) ? _editEmpresa(initialData?['id'], updatedData) : _addEmpresa(updatedData);
@@ -90,8 +99,8 @@ class _MainScreenState extends State<MainScreen> {
     _fetchDataEmpresa(); // Busca inicial dos dados de empresas
   }
 
-  void _fetchDataEmpresa() async {
-    final resultado = await buscarDadosEmpresa(currentPage);
+  void _fetchDataEmpresa([search = '']) async {
+    final resultado = await buscarDadosEmpresa(currentPage, search);
     setState(() {
       dados = resultado as List<Map<String, dynamic>>;
       tituloDoFormulario = 'EMPRESAS';
@@ -99,8 +108,8 @@ class _MainScreenState extends State<MainScreen> {
     });
   }
 
-  void _fetchDataPerguntas() async {
-    final resultado = await buscarDadosPerguntas(currentPage);
+  void _fetchDataPerguntas([search = '']) async {
+    final resultado = await buscarDadosPerguntas(currentPage, search);
     setState(() {
       dados = resultado as List<Map<String, dynamic>>;
       tituloDoFormulario = 'PERGUNTAS';
@@ -108,8 +117,8 @@ class _MainScreenState extends State<MainScreen> {
     });
   }
 
-  void _fetchDataFuncionarios() async {
-    final resultado = await buscarDadosFuncionarios(currentPage);
+  void _fetchDataFuncionarios([search = '']) async {
+    final resultado = await buscarDadosFuncionarios(currentPage, search);
     setState(() {
       dados = resultado as List<Map<String, dynamic>>;
       tituloDoFormulario = 'FUNCIONÁRIOS';
@@ -182,9 +191,9 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   // Função para buscar dados da empresa
-  Future<List<dynamic>> buscarDadosEmpresa(int page) async {
+  Future<List<dynamic>> buscarDadosEmpresa(int page, [String search = '']) async {
     try {
-      final queryParams = <String, String>{'page': page.toString()};
+      final queryParams = <String, String>{'nome': search, 'page': page.toString()};
       final uri = Uri.parse('$URL/auth/Empresa/search').replace(queryParameters: queryParams);
 
       final response = await http.get(uri, headers: headers);
@@ -212,9 +221,9 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   // Função para buscar dados de perguntas
-  Future<List<dynamic>> buscarDadosPerguntas(int page) async {
+  Future<List<dynamic>> buscarDadosPerguntas(int page, [String search = '']) async {
     try {
-      final queryParams = <String, String>{'page': page.toString()};
+      final queryParams = <String, String>{'nome': search, 'page': page.toString()};
       final uri = Uri.parse('$URL/auth/Perguntas/search').replace(queryParameters: queryParams);
 
       final response = await http.get(uri, headers: headers);
@@ -241,9 +250,9 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   // Função para buscar dados dos funcionários
-  Future<List<dynamic>> buscarDadosFuncionarios(int page) async {
+  Future<List<dynamic>> buscarDadosFuncionarios(int page, [String search = '']) async {
     try {
-      final queryParams = <String, String>{'page': page.toString()};
+      final queryParams = <String, String>{'nome': search, 'page': page.toString()};
       final uri = Uri.parse('$URL/auth/Funcionario/search').replace(queryParameters: queryParams);
 
       final response = await http.get(uri, headers: headers);
@@ -581,7 +590,7 @@ class _MainScreenState extends State<MainScreen> {
 
   static const String URL = 'http://localhost:8080';
   Map<String, String> headers = {
-    'Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyb290IiwiY2FyZ28iOiJBZG1pbiIsImV4cCI6MTczMTAyNDk4MX0.MMt9nudUaJW9WT8GrBKA5vIAOiuPHLVOM1r-_R9xYU0',
+    'Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyb290IiwiY2FyZ28iOiJBZG1pbiIsImV4cCI6MTczMTExMjYzMn0.Irh4-uYVL_CxT0cYkcv3l8uEZYurQ-bG6i7nQhF_2Gc',
     'Content-Type': 'application/json; charset=UTF-8',
   };
 }

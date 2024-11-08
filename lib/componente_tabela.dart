@@ -12,6 +12,7 @@ class TabelaGenerica extends StatelessWidget {
   final VoidCallback onPageBack;
   final VoidCallback onPageForward;
   final int indexTelaFormulario;
+  final Function(String) onSearchIconTap;
 
   final Function(int) onTap;
 
@@ -24,8 +25,11 @@ class TabelaGenerica extends StatelessWidget {
     required this.onTap, 
     required this.onPageBack, 
     required this.onPageForward,
-    required this.indexTelaFormulario
+    required this.indexTelaFormulario,
+    required this.onSearchIconTap,
   });
+
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -89,10 +93,16 @@ class TabelaGenerica extends StatelessWidget {
                 ),
                 Spacer(), // Pushes the search bar to the far right
                 SizedBox(
-                  width: 150, // Set a fixed width for the TextField
+                  width: 150,
                   child: TextField(
+                    controller: _searchController,
                     decoration: InputDecoration(
-                      prefixIcon: Icon(Icons.search, color: Colors.grey, size: 20),
+                      prefixIcon: GestureDetector(
+                        onTap: () {
+                          onSearchIconTap(_searchController.text);
+                        },
+                        child: Icon(Icons.search, color: Colors.grey, size: 20),
+                      ),
                       hintText: 'Pesquisar',
                       contentPadding: EdgeInsets.symmetric(vertical: 12.0),
                       border: OutlineInputBorder(
