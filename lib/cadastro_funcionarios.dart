@@ -81,7 +81,7 @@ class _CadastroFuncionarioFormState extends State<CadastroFuncionarioForm> {
                   borderRadius: BorderRadius.circular(15.0),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.grey.withOpacity(0.5),
+                      color: Colors.grey.withOpacity(0.2),
                       spreadRadius: 5,
                       blurRadius: 7,
                       offset: Offset(0, 3),
