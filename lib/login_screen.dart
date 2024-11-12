@@ -1,3 +1,5 @@
+import 'package:ambientese/tela_inicial.dart'; // Importe a nova tela
+import 'package:ambientese/main_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -82,6 +84,10 @@ class _LoginFormState extends State<LoginForm> {
 
       if (response.statusCode == 200) {
         // Sucesso no login
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => TelaInicial()), // Navega para a nova tela
+        );
       } else if (response.statusCode == 401) {
         // Falha no login
         setState(() {
