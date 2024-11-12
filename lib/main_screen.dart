@@ -16,6 +16,7 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 6;
+  bool isFormulario = true;
 
   String tituloDoFormulario = '';
   List<String> colunas = [];
@@ -44,6 +45,7 @@ class _MainScreenState extends State<MainScreen> {
           onSearchIconTap: (String value) {
             _fetchDataEmpresa(value);
           },
+          isSelectable: false,
         ),
         TabelaGenerica(
           colunas: colunas,
@@ -62,6 +64,10 @@ class _MainScreenState extends State<MainScreen> {
           onSearchIconTap: (String value) {
             _fetchDataPerguntas(value);
           },
+          isSelectable: isFormulario,
+          createFormulario: (selectedIds) {
+            _createFormulario(selectedIds);
+          },
         ),
         TabelaGenerica(
           colunas: colunas,
@@ -78,8 +84,9 @@ class _MainScreenState extends State<MainScreen> {
           onPageForward: _incrementPage,
           indexTelaFormulario: 5,
           onSearchIconTap: (String value) {
-            _fetchDataEmpresa(value);
+            _fetchDataFuncionarios(value);
           },
+          isSelectable: false,
         ),
         CadastroForm(onTap: _onItemTapped, initialData: initialData, onSave: (updatedData, isEdit) {
           (isEdit == 1) ? _editEmpresa(initialData?['id'], updatedData) : _addEmpresa(updatedData);
@@ -163,10 +170,11 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  void _onItemTapped(int index) {
+  void _onItemTapped(int index, [bool? isFormulario]) {
     setState(() {
       _currentIndex = index;
       currentPage = 0; // Resetar para a primeira página ao mudar de tela
+      this.isFormulario = isFormulario != null ? true : false;
     });
 
     if (index == 0) {
@@ -236,6 +244,7 @@ class _MainScreenState extends State<MainScreen> {
             'id': item['id'], // Inclui o ID
             'Pergunta': item['descricao'] ?? '', // Nome
             'Eixo': item['eixo'] ?? '', // Porte
+            'isSelected': false, // Porte
           };
         }).toList();
 
@@ -587,10 +596,34 @@ class _MainScreenState extends State<MainScreen> {
   }
 
 
+  Future<void> _createFormulario(List<int> selectedIds) async {
+    final uri = Uri.parse('$URL/auth/Pergunta/Delete/');
+    print("selectedIds: $selectedIds");
+    
+    try {
+      final response = await http.delete(uri, headers: headers);
+
+      if (response.statusCode == 200) {
+        setState(() {
+          // Remove the item from the list after deletion
+          // dados.removeWhere((item) => item['id'] == id);
+        });
+        // print("Pergunta excluída com sucesso: ID $id");
+      } else {
+        print("Erro ao excluir a pergunta: ${response.statusCode}");
+        // Optionally, show a message to the user
+        _showErrorSnackbar("Erro ao excluir a pergunta.");
+      }
+    } catch (e) {
+      print("Erro de conexão: $e");
+      _showErrorSnackbar("Erro ao deletar, a pergunta está sendo utilizadas em avaliações.");
+    }
+  }
+
 
   static const String URL = 'http://localhost:8080';
   Map<String, String> headers = {
-    'Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyb290IiwiY2FyZ28iOiJBZG1pbiIsImV4cCI6MTczMTExMjYzMn0.Irh4-uYVL_CxT0cYkcv3l8uEZYurQ-bG6i7nQhF_2Gc',
+    'Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyb290IiwiY2FyZ28iOiJBZG1pbiIsImV4cCI6MTczMTQ1NTU0N30.RwD5NEphOj0HDSdlu3-3-pH63r0W3JbgU3rWVRL3TAI',
     'Content-Type': 'application/json; charset=UTF-8',
   };
 }
