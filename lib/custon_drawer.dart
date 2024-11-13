@@ -53,7 +53,7 @@ class CustomDrawer extends StatelessWidget {
           ),
           ListTile(
             title: Text('Checklist', style: TextStyle(fontSize: 18)),
-            onTap: () => onTap(5),
+            onTap: () => onTap(7),
           ),
         ],
       ),
