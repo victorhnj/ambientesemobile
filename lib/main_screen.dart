@@ -6,6 +6,7 @@ import 'package:ambientese/cadastro_perguntas.dart';
 import 'cadastro_funcionarios.dart';
 import 'componente_tabela.dart';
 import 'tela_inicial.dart';
+import 'resultado_avaliacao.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -15,7 +16,7 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _currentIndex = 6;
+  int _currentIndex = 7;
   bool isFormulario = true;
 
   String tituloDoFormulario = '';
@@ -98,6 +99,7 @@ class _MainScreenState extends State<MainScreen> {
           (isEdit == 1) ? _editFuncionario(initialData?['id'], updatedData) : _addFuncionario(updatedData); 
         },),
         TelaInicial(onTap: _onItemTapped),
+        ResultadosEmpresaScreen(companyName: 'Johnson & Johnson'),
       ];
 
   @override
