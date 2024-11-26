@@ -18,8 +18,9 @@ class CadastroForm extends StatefulWidget {
   final Function(int) onTap;
   final Map<String, dynamic>? initialData;
   final void Function(Map<String, dynamic> updatedData, int indexTelaFormulario)? onSave;
+  final String? errorMessage;
 
-  CadastroForm({required this.onTap, this.initialData,  this.onSave});
+  CadastroForm({required this.onTap, this.initialData,  this.onSave, this.errorMessage});
 
   @override
   _CadastroFormState createState() => _CadastroFormState();
@@ -48,8 +49,7 @@ class _CadastroFormState extends State<CadastroForm> {
   final TextEditingController _nomeSolicitanteController = TextEditingController();
   final TextEditingController _telefoneSolicitanteController = TextEditingController();
 
-
-@override
+  @override
   void initState() {
     super.initState();
     if (widget.initialData != null) {
@@ -137,6 +137,12 @@ class _CadastroFormState extends State<CadastroForm> {
             labelText: 'Nome Fantasia',
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
           ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Por favor, insira o nome fantasia';
+            }
+            return null;
+          },
         ),
         SizedBox(height: height * 0.02),
         TextFormField(
@@ -145,6 +151,12 @@ class _CadastroFormState extends State<CadastroForm> {
             labelText: 'Razão Social',
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
           ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Por favor, insira a razão social';
+            }
+            return null;
+          },
         ),
         SizedBox(height: height * 0.02),
         TextFormField(
@@ -153,6 +165,13 @@ class _CadastroFormState extends State<CadastroForm> {
             labelText: 'CNPJ',
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
           ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Por favor, insira o CNPJ';
+            }
+            return null;
+          },
+          
         ),
         SizedBox(height: height * 0.02),
         TextFormField(
@@ -161,6 +180,12 @@ class _CadastroFormState extends State<CadastroForm> {
             labelText: 'Inscrição Social',
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
           ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Por favor, insira a inscrição social';
+            }
+            return null;
+          },
         ),
         SizedBox(height: height * 0.02),
         TextFormField(
@@ -169,6 +194,12 @@ class _CadastroFormState extends State<CadastroForm> {
             labelText: 'Telefone da Empresa',
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
           ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Por favor, insira o telefone da empresa';
+            }
+            return null;
+          },
         ),
         SizedBox(height: height * 0.02),
         DropdownButtonFormField<String>(
@@ -188,6 +219,12 @@ class _CadastroFormState extends State<CadastroForm> {
               _porteSelecionado = value;
             });
           },
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Por favor, selecione o porte da empresa';
+            }
+            return null;
+          },
         ),
         SizedBox(height: height * 0.02),
         TextFormField(
@@ -196,8 +233,14 @@ class _CadastroFormState extends State<CadastroForm> {
             labelText: 'Ramo',
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
           ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Por favor, insira o ramo';
+            }
+            return null;
+          },
         ),
-        SizedBox(height: height * 0.04),
+        SizedBox(height: height * 0.11),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -287,6 +330,12 @@ class _CadastroFormState extends State<CadastroForm> {
             labelText: 'CEP',
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
           ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Por favor, insira o CEP';
+            }
+            return null;
+          },
         ),
         SizedBox(height: height * 0.02),
         TextFormField(
@@ -295,6 +344,12 @@ class _CadastroFormState extends State<CadastroForm> {
             labelText: 'UF',
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
           ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Por favor, insira a UF';
+            }
+            return null;
+          },
         ),
         SizedBox(height: height * 0.02),
         TextFormField(
@@ -303,6 +358,12 @@ class _CadastroFormState extends State<CadastroForm> {
             labelText: 'Cidade',
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
           ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Por favor, insira a cidade';
+            }
+            return null;
+          },
         ),
         SizedBox(height: height * 0.02),
         TextFormField(
@@ -311,6 +372,12 @@ class _CadastroFormState extends State<CadastroForm> {
             labelText: 'Bairro',
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
           ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Por favor, insira o bairro';
+            }
+            return null;
+          },
         ),
         SizedBox(height: height * 0.02),
         TextFormField(
@@ -319,6 +386,12 @@ class _CadastroFormState extends State<CadastroForm> {
             labelText: 'Rua',
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
           ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Por favor, insira a rua';
+            }
+            return null;
+          },
         ),
         
         SizedBox(height: height * 0.02),
@@ -328,8 +401,14 @@ class _CadastroFormState extends State<CadastroForm> {
             labelText: 'Número',
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
           ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Por favor, insira o número';
+            }
+            return null;
+          },
         ),
-        SizedBox(height: height * 0.04),
+        SizedBox(height: height * 0.195),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -423,6 +502,12 @@ class _CadastroFormState extends State<CadastroForm> {
             labelText: 'Nome do solicitante',
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
           ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Por favor, insira o nome do solicitante';
+            }
+            return null;
+          },
         ),
         SizedBox(height: height * 0.02),
         TextFormField(
@@ -431,6 +516,12 @@ class _CadastroFormState extends State<CadastroForm> {
             labelText: 'Telefone do solicitante',
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
           ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Por favor, insira o telefone do solicitante';
+            }
+            return null;
+          },
         ),
         SizedBox(height: height * 0.02),
         TextFormField(
@@ -439,8 +530,14 @@ class _CadastroFormState extends State<CadastroForm> {
             labelText: 'Email',
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
           ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Por favor, insira o email';
+            }
+            return null;
+          },
         ),
-        SizedBox(height: height * 0.04),
+        SizedBox(height: height * 0.45),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -518,6 +615,14 @@ class _CadastroFormState extends State<CadastroForm> {
                       'telefoneSolicitante': _telefoneSolicitanteController.text,
                     };
 
+                    // Mostra um indicador de carregamento (opcional)
+                    // showDialog(
+                    //   context: context,
+                    //   barrierDismissible: false,
+                    //   builder: (context) {
+                    //     return Center(child: CircularProgressIndicator());
+                    //   },
+                    // );
                     if (widget.onSave != null) {
                       widget.initialData == null ? widget.onSave!(updatedData, 0) : widget.onSave!(updatedData, 1);
                     }

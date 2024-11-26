@@ -73,7 +73,7 @@ class _CadastroFuncionarioFormState extends State<CadastroFuncionarioForm> {
               child: Container(
                 width: double.infinity,
                 constraints: BoxConstraints(
-                  minHeight: height - 150,
+                  minHeight: height - 150, //* 0.85
                 ),
                 padding: EdgeInsets.all(16.0),
                 decoration: BoxDecoration(
@@ -193,7 +193,7 @@ class _CadastroFuncionarioFormState extends State<CadastroFuncionarioForm> {
                           labelText: 'Cargo',
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
                         ),
-                        items: ['Consultor', 'Gerente', 'Analista']
+                        items: ['Consultor', 'Gestor']
                             .map((label) => DropdownMenuItem(
                                   child: Text(label),
                                   value: label,
@@ -212,6 +212,7 @@ class _CadastroFuncionarioFormState extends State<CadastroFuncionarioForm> {
                         },
                       ),
                       SizedBox(height: height * 0.04),
+                      Spacer(),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [

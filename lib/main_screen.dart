@@ -1,3 +1,10 @@
+// import 'dart:ffi';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:open_file/open_file.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import 'package:ambientese/avaliacao_resposta.dart';
 import 'package:flutter/material.dart';
 import 'package:ambientese/header.dart';
 import 'package:ambientese/custon_drawer.dart';
@@ -9,14 +16,14 @@ import 'tela_inicial.dart';
 import 'resultado_avaliacao.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
+import 'avaliacao_pesquisa.dart';
 class MainScreen extends StatefulWidget {
   @override
   _MainScreenState createState() => _MainScreenState();
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _currentIndex = 7;
+  int _currentIndex = 6;
   bool isFormulario = true;
 
   String tituloDoFormulario = '';
@@ -27,6 +34,20 @@ class _MainScreenState extends State<MainScreen> {
   Map<String, dynamic>? initialData;
 
   int currentPage = 0;
+  String searchString = '';
+
+
+  // Para a realização dos formulários
+  List<int> selectedIdsForm = [];
+  int companySelected = -1;
+  String companySelectedName= '';
+  dynamic governamental = [];
+  dynamic ambiental = [];
+  dynamic social = [];
+  List<Map<String, dynamic>> dadosResultadoAvaliacao = [];
+  String _errorMessage = '';
+  bool isLoading = false;
+  bool finishList = false;
 
   List<Widget> get _screens => [
         TabelaGenerica(
@@ -44,9 +65,16 @@ class _MainScreenState extends State<MainScreen> {
           onPageForward: _incrementPage,
           indexTelaFormulario: 3, 
           onSearchIconTap: (String value) {
+            setState(() {
+              currentPage = 0;
+              searchString = value;
+            });
+
             _fetchDataEmpresa(value);
           },
           isSelectable: false,
+          currentPage: currentPage,
+          finishList: finishList,
         ),
         TabelaGenerica(
           colunas: colunas,
@@ -63,12 +91,19 @@ class _MainScreenState extends State<MainScreen> {
           onPageForward: _incrementPage,
           indexTelaFormulario: 4,
           onSearchIconTap: (String value) {
+            setState(() {
+              currentPage = 0;
+              searchString = value;
+            });
+
             _fetchDataPerguntas(value);
           },
           isSelectable: isFormulario,
           createFormulario: (selectedIds) {
             _createFormulario(selectedIds);
           },
+          currentPage: currentPage,
+          finishList: finishList,
         ),
         TabelaGenerica(
           colunas: colunas,
@@ -85,13 +120,20 @@ class _MainScreenState extends State<MainScreen> {
           onPageForward: _incrementPage,
           indexTelaFormulario: 5,
           onSearchIconTap: (String value) {
+            setState(() {
+              currentPage = 0;
+              searchString = value;
+            });
+
             _fetchDataFuncionarios(value);
           },
           isSelectable: false,
+          currentPage: currentPage,
+          finishList: finishList,
         ),
         CadastroForm(onTap: _onItemTapped, initialData: initialData, onSave: (updatedData, isEdit) {
           (isEdit == 1) ? _editEmpresa(initialData?['id'], updatedData) : _addEmpresa(updatedData);
-        },),
+        }, errorMessage: _errorMessage),
         CadastroPerguntaForm(onTap: _onItemTapped, initialData: initialData, onSave: (updatedData, isEdit) {
           (isEdit == 1) ? _editPergunta(initialData?['id'], updatedData) : _addPergunta(updatedData);
         },),
@@ -99,7 +141,9 @@ class _MainScreenState extends State<MainScreen> {
           (isEdit == 1) ? _editFuncionario(initialData?['id'], updatedData) : _addFuncionario(updatedData); 
         },),
         TelaInicial(onTap: _onItemTapped),
-        ResultadosEmpresaScreen(companyName: 'Johnson & Johnson'),
+        ResultadosEmpresaScreen(companyName: companySelectedName, screenData: dadosResultadoAvaliacao, exportPDF: (nomeFantasia) => { exportPDF(nomeFantasia) }, onTap: _onItemTapped,),
+        AvaliacaoPesquisa(saveCompanyData: (companyId, companyName) { companySelected = companyId; companySelectedName = companyName; _fetchEmpresaPerguntas(); },),
+        AvaliacaoResposta(perguntasGovernamental: governamental, perguntasAmbiental: ambiental, perguntasSocial: social, processarRespostas: (answers) => { processarRespostas(answers) },),
       ];
 
   @override
@@ -109,38 +153,90 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   void _fetchDataEmpresa([search = '']) async {
-    final resultado = await buscarDadosEmpresa(currentPage, search);
     setState(() {
-      dados = resultado as List<Map<String, dynamic>>;
-      tituloDoFormulario = 'EMPRESAS';
-      colunas = ['Nome', 'Ramo', 'Porte'];
+      isLoading = true; // Inicia o estado de carregamento
     });
+
+    try {
+      final resultado = await buscarDadosEmpresa(currentPage, search);
+      setState(() {
+        dados = resultado as List<Map<String, dynamic>>;
+        tituloDoFormulario = 'EMPRESAS';
+        colunas = ['Nome', 'Ramo', 'Porte'];
+        finishList = dados[0]['finishList'];
+      });
+
+      if (dados.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Nenhum dado foi encontrado!',
+              style: TextStyle(color: Colors.white),
+            ),
+            backgroundColor: Colors.red, // Cor de fundo do Snackbar para sucesso
+            behavior: SnackBarBehavior.floating, // Exibe o Snackbar flutuante
+            duration: Duration(seconds: 3), // Duração do Snackbar
+          ),
+        );
+      }
+    } catch (e) {
+      print('Erro ao buscar dados: $e');
+    } finally {
+      setState(() {
+        isLoading = false; // Finaliza o estado de carregamento
+      });
+    }
   }
 
   void _fetchDataPerguntas([search = '']) async {
-    final resultado = await buscarDadosPerguntas(currentPage, search);
     setState(() {
-      dados = resultado as List<Map<String, dynamic>>;
-      tituloDoFormulario = 'PERGUNTAS';
-      colunas = ['Pergunta', 'Eixo'];
+      isLoading = true; // Inicia o estado de carregamento
     });
+
+    try {
+      final resultado = await buscarDadosPerguntas(currentPage, search);
+      setState(() {
+        dados = resultado as List<Map<String, dynamic>>;
+        tituloDoFormulario = 'PERGUNTAS';
+        colunas = ['Pergunta', 'Eixo'];
+      });
+    } catch (e) {
+      print('Erro ao buscar dados: $e');
+    } finally {
+      setState(() {
+        isLoading = false; // Finaliza o estado de carregamento
+      });
+    }
   }
 
   void _fetchDataFuncionarios([search = '']) async {
-    final resultado = await buscarDadosFuncionarios(currentPage, search);
     setState(() {
-      dados = resultado as List<Map<String, dynamic>>;
-      tituloDoFormulario = 'FUNCIONÁRIOS';
-      colunas = ['Nome', 'Cargo'];
+      isLoading = true; // Inicia o estado de carregamento
     });
+
+    try {
+      final resultado = await buscarDadosFuncionarios(currentPage, search);
+      setState(() {
+        dados = resultado as List<Map<String, dynamic>>;
+        tituloDoFormulario = 'FUNCIONÁRIOS';
+        colunas = ['Nome', 'Cargo'];
+      });
+    } catch (e) {
+      print('Erro ao buscar dados: $e');
+    } finally {
+      setState(() {
+        isLoading = false; // Finaliza o estado de carregamento
+      });
+    }
   }
 
-
   void _incrementPage() {
-    setState(() {
-      currentPage += 1;
-    });
-    _fetchCurrentData(); // Busca dados da próxima página
+    if (dados[0]["finishList"] == false) {
+      setState(() {
+        currentPage += 1;
+      });
+      _fetchCurrentData(); // Busca dados da próxima página
+    }
   }
 
   void _decrementPage() {
@@ -169,6 +265,11 @@ class _MainScreenState extends State<MainScreen> {
       appBar: CustomHeader(onTap: _onItemTapped),
       drawer: CustomDrawer(onTap: _onItemTapped),
       body: _screens[_currentIndex],
+      // body: isLoading
+      //   ? Center(
+      //       child: CircularProgressIndicator(), // Mostra o indicador de carregamento
+      //     )
+      //   : _screens[_currentIndex],
     );
   }
 
@@ -177,6 +278,7 @@ class _MainScreenState extends State<MainScreen> {
       _currentIndex = index;
       currentPage = 0; // Resetar para a primeira página ao mudar de tela
       this.isFormulario = isFormulario != null ? true : false;
+      searchString = '';
     });
 
     if (index == 0) {
@@ -203,13 +305,19 @@ class _MainScreenState extends State<MainScreen> {
   // Função para buscar dados da empresa
   Future<List<dynamic>> buscarDadosEmpresa(int page, [String search = '']) async {
     try {
-      final queryParams = <String, String>{'nome': search, 'page': page.toString()};
+      if (search.isNotEmpty) {
+        setState(() {
+          currentPage = 0;
+          searchString = search;
+        });
+      }
+      final queryParams = <String, String>{'nome': searchString, 'page': page.toString()};
       final uri = Uri.parse('$URL/auth/Empresa/search').replace(queryParameters: queryParams);
 
       final response = await http.get(uri, headers: headers);
 
       if (response.statusCode == 200) {
-        List<dynamic> resultado = jsonDecode(utf8.decode(response.bodyBytes));;
+        List<dynamic> resultado = jsonDecode(utf8.decode(response.bodyBytes));
 
         return resultado.map((item) {
           return {
@@ -217,6 +325,7 @@ class _MainScreenState extends State<MainScreen> {
             'Nome': item['nomeFantasia'] ?? '', // Nome
             'Porte': item['porteEmpresas'] ?? '', // Porte
             'Ramo': item['ramo'] ?? '',          // Ramo
+            // 'finishList': item['finishList'] ?? false,          // finishList
           };
         }).toList();
     
@@ -233,7 +342,7 @@ class _MainScreenState extends State<MainScreen> {
   // Função para buscar dados de perguntas
   Future<List<dynamic>> buscarDadosPerguntas(int page, [String search = '']) async {
     try {
-      final queryParams = <String, String>{'nome': search, 'page': page.toString()};
+      final queryParams = <String, String>{'nome': searchString, 'page': page.toString()};
       final uri = Uri.parse('$URL/auth/Perguntas/search').replace(queryParameters: queryParams);
 
       final response = await http.get(uri, headers: headers);
@@ -247,6 +356,7 @@ class _MainScreenState extends State<MainScreen> {
             'Pergunta': item['descricao'] ?? '', // Nome
             'Eixo': item['eixo'] ?? '', // Porte
             'isSelected': false, // Porte
+            // 'finishList': item['finishList'] ?? false, // finishList
           };
         }).toList();
 
@@ -263,7 +373,13 @@ class _MainScreenState extends State<MainScreen> {
   // Função para buscar dados dos funcionários
   Future<List<dynamic>> buscarDadosFuncionarios(int page, [String search = '']) async {
     try {
-      final queryParams = <String, String>{'nome': search, 'page': page.toString()};
+      if (search.isNotEmpty) {
+        setState(() {
+          currentPage = 0;
+          searchString = search;
+        });
+      }
+      final queryParams = <String, String>{'nome': searchString, 'page': page.toString()};
       final uri = Uri.parse('$URL/auth/Funcionario/search').replace(queryParameters: queryParams);
 
       final response = await http.get(uri, headers: headers);
@@ -276,6 +392,7 @@ class _MainScreenState extends State<MainScreen> {
             'id': item['id'], // Inclui o ID
             'Nome': item['nome'] ?? '', // Nome
             'Cargo': item['cargo']['descricao'] ?? '', // Porte
+            // 'finishList': item['finishList'] ?? false, // finishList
           };
         }).toList();
       } else {
@@ -300,12 +417,40 @@ class _MainScreenState extends State<MainScreen> {
           // Remove the item from the list after deletion
           dados.removeWhere((item) => item['id'] == id);
         });
-        print("Empresa excluída com sucesso: ID $id");
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Empresa excluída com sucesso!',
+              style: TextStyle(color: Colors.white),
+            ),
+            backgroundColor: Colors.green, // Cor de fundo do Snackbar para sucesso
+            behavior: SnackBarBehavior.floating, // Exibe o Snackbar flutuante
+            duration: Duration(seconds: 3), // Duração do Snackbar
+          ),
+        );
       } else {
         print("Erro ao excluir a empresa: ${response.statusCode}");
-        // Optionally, show a message to the user
-        _showErrorSnackbar("Erro ao excluir a empresa.");
-      }
+
+        String errorMessage;
+        try {
+          final errorResponse = json.decode(response.body);
+          errorMessage = errorResponse['message'] ?? 'Erro desconhecido';
+        } catch (decodeError) {
+          errorMessage = response.body;
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              errorMessage,
+              style: TextStyle(color: Colors.white),
+            ),
+            backgroundColor: Colors.red, // Cor de fundo do Snackbar para erros
+            behavior: SnackBarBehavior.floating, // Para exibir o Snackbar flutuante
+            duration: Duration(seconds: 4), // Tempo que o Snackbar permanece visível
+          ),
+        );      }
     } catch (e) {
       print("Erro de conexão: $e");
       _showErrorSnackbar("Erro de conexão ao excluir a empresa.");
@@ -313,21 +458,51 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Future<void> _deletePergunta(int id) async {
-    final uri = Uri.parse('$URL/auth/Pergunta/Delete/$id');
+    final uri = Uri.parse('$URL/auth/Perguntas/Delete/$id');
     
     try {
       final response = await http.delete(uri, headers: headers);
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 204) {
         setState(() {
           // Remove the item from the list after deletion
           dados.removeWhere((item) => item['id'] == id);
         });
-        print("Pergunta excluída com sucesso: ID $id");
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Pergunta excluída com sucesso!',
+              style: TextStyle(color: Colors.white),
+            ),
+            backgroundColor: Colors.green, // Cor de fundo do Snackbar para sucesso
+            behavior: SnackBarBehavior.floating, // Exibe o Snackbar flutuante
+            duration: Duration(seconds: 3), // Duração do Snackbar
+          ),
+        );
+
       } else {
         print("Erro ao excluir a pergunta: ${response.statusCode}");
-        // Optionally, show a message to the user
-        _showErrorSnackbar("Erro ao excluir a pergunta.");
+
+        String errorMessage;
+        try {
+          final errorResponse = json.decode(response.body);
+          errorMessage = errorResponse['message'] ?? 'Erro desconhecido';
+        } catch (decodeError) {
+          errorMessage = response.body;
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              errorMessage,
+              style: TextStyle(color: Colors.white),
+            ),
+            backgroundColor: Colors.red, // Cor de fundo do Snackbar para erros
+            behavior: SnackBarBehavior.floating, // Para exibir o Snackbar flutuante
+            duration: Duration(seconds: 4), // Tempo que o Snackbar permanece visível
+          ),
+        );
       }
     } catch (e) {
       print("Erro de conexão: $e");
@@ -346,11 +521,39 @@ class _MainScreenState extends State<MainScreen> {
           // Remove the item from the list after deletion
           dados.removeWhere((item) => item['id'] == id);
         });
-        print("Funcionario excluído com sucesso: ID $id");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Funcionário excluído com sucesso!',
+              style: TextStyle(color: Colors.white),
+            ),
+            backgroundColor: Colors.green, // Cor de fundo do Snackbar para sucesso
+            behavior: SnackBarBehavior.floating, // Exibe o Snackbar flutuante
+            duration: Duration(seconds: 3), // Duração do Snackbar
+          ),
+        );
       } else {
         print("Erro ao excluir o funcionario: ${response.statusCode}");
-        // Optionally, show a message to the user
-        _showErrorSnackbar("Erro ao excluir o funcionario.");
+
+        String errorMessage;
+        try {
+          final errorResponse = json.decode(response.body);
+          errorMessage = errorResponse['message'] ?? 'Erro desconhecido';
+        } catch (decodeError) {
+          errorMessage = response.body;
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              errorMessage,
+              style: TextStyle(color: Colors.white),
+            ),
+            backgroundColor: Colors.red, // Cor de fundo do Snackbar para erros
+            behavior: SnackBarBehavior.floating, // Para exibir o Snackbar flutuante
+            duration: Duration(seconds: 4), // Tempo que o Snackbar permanece visível
+          ),
+        );
       }
     } catch (e) {
       print("Erro de conexão: $e");
@@ -371,7 +574,8 @@ class _MainScreenState extends State<MainScreen> {
       final response = await http.get(uri, headers: headers);
 
       if (response.statusCode == 200) {
-        final dynamic decodedResponse = jsonDecode(response.body);
+        final dynamic decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
+
         
         setState(() {
           initialData = decodedResponse;
@@ -397,8 +601,17 @@ class _MainScreenState extends State<MainScreen> {
       );
 
       if (response.statusCode == 200) {
-        // Update local data or refresh list
-        print("Funcionario editado com sucesso");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Funcionário atualizado com sucesso!',
+              style: TextStyle(color: Colors.white),
+            ),
+            backgroundColor: Colors.green, // Cor de fundo do Snackbar para sucesso
+            behavior: SnackBarBehavior.floating, // Exibe o Snackbar flutuante
+            duration: Duration(seconds: 3), // Duração do Snackbar
+          ),
+        );
 
         _fetchDataFuncionarios();
         setState(() {
@@ -406,7 +619,26 @@ class _MainScreenState extends State<MainScreen> {
           _currentIndex = 2;
         });
       } else {
-        print("Erro ao editar funcionario");
+        String errorMessage;
+
+        try {
+          final errorResponse = json.decode(response.body);
+          errorMessage = errorResponse['message'] ?? 'Erro desconhecido';
+        } catch (decodeError) {
+          errorMessage = response.body;
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              errorMessage,
+              style: TextStyle(color: Colors.white),
+            ),
+            backgroundColor: Colors.red, // Cor de fundo do Snackbar para erros
+            behavior: SnackBarBehavior.floating, // Para exibir o Snackbar flutuante
+            duration: Duration(seconds: 4), // Tempo que o Snackbar permanece visível
+          ),
+        );
       }
     } catch (e) {
       print("Erro de conexão: $e");
@@ -425,18 +657,67 @@ class _MainScreenState extends State<MainScreen> {
       );
 
       if (response.statusCode == 200) {
-        // Successfully added, refresh list or update local data
-        print("Funcionário adicionada com sucesso");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Funcionário adicionado com sucesso!',
+              style: TextStyle(color: Colors.white),
+            ),
+            backgroundColor: Colors.green, // Cor de fundo do Snackbar para sucesso
+            behavior: SnackBarBehavior.floating, // Exibe o Snackbar flutuante
+            duration: Duration(seconds: 3), // Duração do Snackbar
+          ),
+        );
 
         _fetchDataFuncionarios();
         setState(() {
           _currentIndex = 2; // Switches to a different tab or state if needed
         });
       } else {
-        print("Erro ao adicionar funcionário");
+        String errorMessage;
+
+        try {
+          final errorResponse = json.decode(response.body);
+          errorMessage = errorResponse['message'] ?? 'Erro desconhecido';
+        } catch (decodeError) {
+          errorMessage = response.body;
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              errorMessage,
+              style: TextStyle(color: Colors.white),
+            ),
+            backgroundColor: Colors.red, // Cor de fundo do Snackbar para erros
+            behavior: SnackBarBehavior.floating, // Para exibir o Snackbar flutuante
+            duration: Duration(seconds: 4), // Tempo que o Snackbar permanece visível
+          ),
+        );
+
       }
     } catch (e) {
       print("Erro de conexão: $e");
+
+      String errorMessage;
+      if (e is FormatException) {
+        errorMessage = e.message; 
+      } else {
+        errorMessage = e.toString(); 
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            errorMessage,
+            style: TextStyle(color: Colors.white),
+          ),
+          backgroundColor: Colors.red, 
+          behavior: SnackBarBehavior.floating,
+          duration: Duration(seconds: 4), 
+        ),
+      );
+
     }
   }
 
@@ -474,16 +755,44 @@ class _MainScreenState extends State<MainScreen> {
       );
 
       if (response.statusCode == 200) {
-        // Update local data or refresh list
-        print("Empresa editada com sucesso");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Empresa atualizada com sucesso!',
+              style: TextStyle(color: Colors.white),
+            ),
+            backgroundColor: Colors.green, // Cor de fundo do Snackbar para sucesso
+            behavior: SnackBarBehavior.floating, // Exibe o Snackbar flutuante
+            duration: Duration(seconds: 3), // Duração do Snackbar
+          ),
+        );
 
         _fetchDataEmpresa();
         setState(() {
           initialData = null;
-          _currentIndex = 2;
+          _currentIndex = 0;
         });
       } else {
-        print("Erro ao editar empresa");
+        String errorMessage;
+
+        try {
+          final errorResponse = json.decode(response.body);
+          errorMessage = errorResponse['message'] ?? 'Erro desconhecido';
+        } catch (decodeError) {
+          errorMessage = response.body;
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              errorMessage,
+              style: TextStyle(color: Colors.white),
+            ),
+            backgroundColor: Colors.red, // Cor de fundo do Snackbar para erros
+            behavior: SnackBarBehavior.floating, // Para exibir o Snackbar flutuante
+            duration: Duration(seconds: 4), // Tempo que o Snackbar permanece visível
+          ),
+        );
       }
     } catch (e) {
       print("Erro de conexão: $e");
@@ -492,7 +801,6 @@ class _MainScreenState extends State<MainScreen> {
 
   Future<void> _addEmpresa(Map<String, dynamic> newData) async {
     final uri = Uri.parse('$URL/auth/Empresa/Add');
-    print("Iniciando adição de nova empresa");
 
     try {
       final response = await http.post(
@@ -502,18 +810,70 @@ class _MainScreenState extends State<MainScreen> {
       );
 
       if (response.statusCode == 200) {
-        // Successfully added, refresh list or update local data
-        print("Empresa adicionada com sucesso");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Empresa adicionada com sucesso!',
+              style: TextStyle(color: Colors.white),
+            ),
+            backgroundColor: Colors.green, // Cor de fundo do Snackbar para sucesso
+            behavior: SnackBarBehavior.floating, // Exibe o Snackbar flutuante
+            duration: Duration(seconds: 3), // Duração do Snackbar
+          ),
+        );
 
-        _fetchDataFuncionarios();
+        _fetchDataEmpresa();
         setState(() {
-          _currentIndex = 2; // Switches to a different tab or state if needed
+          _currentIndex = 0; // Switches to a different tab or state if needed
         });
       } else {
-        print("Erro ao adicionar empresa");
+        String errorMessage;
+
+        try {
+          final errorResponse = json.decode(response.body);
+          errorMessage = errorResponse['message'] ?? 'Erro desconhecido';
+        } catch (decodeError) {
+          errorMessage = response.body;
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              errorMessage,
+              style: TextStyle(color: Colors.white),
+            ),
+            backgroundColor: Colors.red, // Cor de fundo do Snackbar para erros
+            behavior: SnackBarBehavior.floating, // Para exibir o Snackbar flutuante
+            duration: Duration(seconds: 4), // Tempo que o Snackbar permanece visível
+          ),
+        );
+        // setState(() {
+        //   _errorMessage = error['message'] ?? 'Erro desconhecido';
+        // });
       }
     } catch (e) {
       print("Erro de conexão: $e");
+
+      String errorMessage;
+
+      // Verifica se o erro é do tipo FormatException
+      if (e is FormatException) {
+        errorMessage = e.message; // Captura a mensagem do FormatException
+      } else {
+        errorMessage = e.toString(); // Converte o erro genérico para string
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            errorMessage,
+            style: TextStyle(color: Colors.white),
+          ),
+          backgroundColor: Colors.red, // Cor de fundo do Snackbar para erros
+          behavior: SnackBarBehavior.floating, // Para exibir o Snackbar flutuante
+          duration: Duration(seconds: 4), // Tempo que o Snackbar permanece visível
+        ),
+      );
     }
   }
 
@@ -554,8 +914,17 @@ class _MainScreenState extends State<MainScreen> {
       );
 
       if (response.statusCode == 200) {
-        // Update local data or refresh list
-        print("Pergunta editada com sucesso");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Pergunta atualizada com sucesso!',
+              style: TextStyle(color: Colors.white),
+            ),
+            backgroundColor: Colors.green, // Cor de fundo do Snackbar para sucesso
+            behavior: SnackBarBehavior.floating, // Exibe o Snackbar flutuante
+            duration: Duration(seconds: 3), // Duração do Snackbar
+          ),
+        );
 
         _fetchDataPerguntas();
         setState(() {
@@ -563,7 +932,26 @@ class _MainScreenState extends State<MainScreen> {
           _currentIndex = 1;
         });
       } else {
-        print("Erro ao editar pergunta");
+        String errorMessage;
+
+        try {
+          final errorResponse = json.decode(response.body);
+          errorMessage = errorResponse['message'] ?? 'Erro desconhecido';
+        } catch (decodeError) {
+          errorMessage = response.body;
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              errorMessage,
+              style: TextStyle(color: Colors.white),
+            ),
+            backgroundColor: Colors.red, // Cor de fundo do Snackbar para erros
+            behavior: SnackBarBehavior.floating, // Para exibir o Snackbar flutuante
+            duration: Duration(seconds: 4), // Tempo que o Snackbar permanece visível
+          ),
+        );
       }
     } catch (e) {
       print("Erro de conexão: $e");
@@ -582,50 +970,352 @@ class _MainScreenState extends State<MainScreen> {
       );
 
       if (response.statusCode == 200) {
-        // Successfully added, refresh list or update local data
-        print("Pergunta adicionada com sucesso");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Pergunta adicionada com sucesso!',
+              style: TextStyle(color: Colors.white),
+            ),
+            backgroundColor: Colors.green, // Cor de fundo do Snackbar para sucesso
+            behavior: SnackBarBehavior.floating, // Exibe o Snackbar flutuante
+            duration: Duration(seconds: 3), // Duração do Snackbar
+          ),
+        );
 
         _fetchDataPerguntas();
         setState(() {
           _currentIndex = 1; // Switches to a different tab or state if needed
         });
       } else {
-        print("Erro ao adicionar pergunta");
+        String errorMessage;
+
+        try {
+          final errorResponse = json.decode(response.body);
+          errorMessage = errorResponse['message'] ?? 'Erro desconhecido';
+        } catch (decodeError) {
+          errorMessage = response.body;
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              errorMessage,
+              style: TextStyle(color: Colors.white),
+            ),
+            backgroundColor: Colors.red, // Cor de fundo do Snackbar para erros
+            behavior: SnackBarBehavior.floating, // Para exibir o Snackbar flutuante
+            duration: Duration(seconds: 4), // Tempo que o Snackbar permanece visível
+          ),
+        );
+
       }
     } catch (e) {
       print("Erro de conexão: $e");
+
+      String errorMessage;
+      if (e is FormatException) {
+        errorMessage = e.message; 
+      } else {
+        errorMessage = e.toString(); 
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            errorMessage,
+            style: TextStyle(color: Colors.white),
+          ),
+          backgroundColor: Colors.red, 
+          behavior: SnackBarBehavior.floating, 
+          duration: Duration(seconds: 4), 
+        ),
+      );
     }
   }
 
 
   Future<void> _createFormulario(List<int> selectedIds) async {
-    final uri = Uri.parse('$URL/auth/Pergunta/Delete/');
-    print("selectedIds: $selectedIds");
-    
-    try {
-      final response = await http.delete(uri, headers: headers);
+      final uri = Uri.parse('$URL/checklist/Add?eixo=Ambiental');
+      final companyData = {
+        'descricao': 'Teste',
+        'selectedPerguntasIds': selectedIds
+      };
 
-      if (response.statusCode == 200) {
-        setState(() {
-          // Remove the item from the list after deletion
-          // dados.removeWhere((item) => item['id'] == id);
-        });
-        // print("Pergunta excluída com sucesso: ID $id");
-      } else {
-        print("Erro ao excluir a pergunta: ${response.statusCode}");
-        // Optionally, show a message to the user
-        _showErrorSnackbar("Erro ao excluir a pergunta.");
+      try {
+        final response = await http.post(
+          uri,
+          headers: headers,
+          body: jsonEncode(companyData),
+        );
+
+        if (response.statusCode == 200) {
+          print("Formulário criado com sucesso");
+
+          setState(() {
+            selectedIdsForm = selectedIds;
+            _currentIndex = 8;
+          });
+
+          print("selectedIds: $selectedIds");
+          print("selectedIdsForm: $selectedIdsForm");
+
+        } else {
+          print("Erro ao adicionar formulário");
+        }
+      } catch (e) {
+        print("Erro de conexão: $e");
       }
+
+    // } else {
+    //   print("formulari ja existe");
+    //   // message: 'A empresa selecionada já p
+    // }
+  }
+
+  Future<bool> verifyActiveForm() async {
+    final uri = Uri.parse('$URL/auth/haveAvaliacaoAtiva/$companySelected');
+
+    try {
+      final response = await http.get(
+        uri,
+        headers: headers,
+      );
+
+      return response.statusCode == 200 ? jsonDecode(response.body) : throw Exception("Erro ao verificar formulário ativo.");
     } catch (e) {
       print("Erro de conexão: $e");
-      _showErrorSnackbar("Erro ao deletar, a pergunta está sendo utilizadas em avaliações.");
+      throw Exception("Erro de conexão ao verificar formulário ativo.");
     }
   }
 
 
-  static const String URL = 'http://localhost:8080';
+  // Para a avaliação
+  final checkListId = 2;
+  Future<void> _fetchEmpresaPerguntas() async {
+    final uri = Uri.parse('$URL/auth/questionario/$checkListId?empresaId=$companySelected');
+    final bool hasActiveForm = await verifyActiveForm();
+    final props = {
+      'companySelected': companySelected,
+      'isNew': true,
+    };
+    const questionNumbers = 10;
+
+
+    if (!hasActiveForm) {
+      try {
+        final response = await http.get(uri, headers: headers);
+          setState(() {
+            governamental = [];
+            ambiental = [];
+            social = [];
+          });
+
+
+        if (response.statusCode == 200) {
+          final data = jsonDecode(utf8.decode(response.bodyBytes)); // Decode JSON response
+          print("Dados do formulário: $data");
+
+          if (!(props['isNew'] as bool)) {
+            data['formularioRequests'].forEach((item) {
+              if (item['eixo'] == 'Governamental') {
+                if (governamental.length < questionNumbers) { // tem que ver essa parada aqui depois\  
+                  governamental.add(item);
+                }
+              } else if (item['eixo'] == 'Ambiental') {
+                if (ambiental.length < questionNumbers) { // tem que ver essa parada aqui depois\  
+                  ambiental.add(item);
+                }
+              } else if (item['eixo'] == 'Social') {
+                if (social.length < questionNumbers) { // tem que ver essa parada aqui depois\  
+                  social.add(item);
+                }
+              }
+            });
+          } else {
+            data['formularioRequests'].forEach((item) {
+              item.remove('numeroPergunta');
+              if (item['perguntaEixo'] == 'Governamental') {
+                governamental.add(item);
+              } else if (item['perguntaEixo'] == 'Ambiental') {
+                ambiental.add(item);
+              } else if (item['perguntaEixo'] == 'Social') {
+                social.add(item);
+              }
+            });
+          }
+
+          print("Perguntas Governamentais: $governamental");
+          print("Perguntas Ambientais: $ambiental");
+          print("Perguntas Sociais: $social");
+          // final dynamic decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
+          
+          setState(() {
+            _currentIndex = 9;
+          });
+        } 
+        else {
+          print("Erro ao buscar os dados da empresa: ${response.statusCode}");
+          _showErrorSnackbar("Erro ao buscar os dados da empresa.");
+        }
+
+
+      } catch (e) {
+        print("Erro de conexão: $e");
+        _showErrorSnackbar("Erro de conexão ao buscar os dados da empresa.");
+      }
+    } else {
+      print("Já existe um formulário ativo para esta empresa.");
+    }
+  }
+
+
+    Future<void> processarRespostas(List<Map<String, dynamic>> answers) async {
+      final uri = Uri.parse('$URL/auth/processarRespostas?empresa_id=$companySelected&is_complete=true');
+
+      try {
+        final response = await http.post(
+          uri,
+          headers: headers,
+          body: jsonEncode(answers),
+        );
+
+        if (response.statusCode == 200) {
+          // Sucesso
+          print('Respostas enviadas com sucesso!');
+
+          // Processar as respotas para a pagina de resultados
+          final data = jsonDecode(utf8.decode(response.bodyBytes)); // Decode JSON response
+
+          List<Map<String, dynamic>> resultado = processarDadosResultadoAvaliacao(data['respostas'], {"pontuacaoAmbiental": data['pontuacaoAmbiental'], "pontuacaoGovernamental": data['pontuacaoGovernamental'], "pontuacaoSocial": data['pontuacaoSocial']});
+
+          setState(() {
+            dadosResultadoAvaliacao = resultado;
+            _currentIndex = 7;
+          });
+          
+        } else {
+          // Falha
+          print('Erro ao enviar respostas: ${response.statusCode}');
+        }
+      } catch (e) {
+        print('Erro de requisição: $e');
+      }
+    }
+
+    processarDadosResultadoAvaliacao(dynamic answers, dynamic percentages) {
+
+      // Filtrando dados para cada eixo específico
+      List<dynamic> socialData = answers
+          .where((answer) => answer['pergunta']['eixo'] == 'Social')
+          .toList();
+
+      List<dynamic> governamentalData = answers
+          .where((answer) => answer['pergunta']['eixo'] == 'Governamental')
+          .toList();
+
+      List<dynamic> ambientalData = answers
+          .where((answer) => answer['pergunta']['eixo'] == 'Ambiental')
+          .toList();  
+
+      // Transformando os dados filtrados em estrutura similar a _screenData
+      return [
+        {
+          'title': 'Governamental',
+          'color': Colors.blue,
+          'questions': governamentalData.map((answer) {
+            return {
+              "question": answer['pergunta']['descricao'],
+              "status": formatStatus(answer['resposta'])
+            };
+          }).toList(),
+          'percentage': percentages['pontuacaoGovernamental'],
+        },
+        {
+          'title': 'Ambiental',
+          'color': Colors.green,
+          'questions': ambientalData.map((answer) {
+            return {
+              "question": answer['pergunta']['descricao'],
+              "status": formatStatus(answer['resposta'])
+            };
+          }).toList(),
+          'percentage': percentages['pontuacaoAmbiental'],
+        },
+        {
+          'title': 'Social',
+          'color': Colors.orange,
+          'questions': socialData.map((answer) {
+            return {
+              "question": answer['pergunta']['descricao'],
+              "status": formatStatus(answer['resposta'])
+            };
+          }).toList(),
+          'percentage': percentages['pontuacaoSocial'],
+        },
+      ];
+    }
+
+    String formatStatus(String status) {
+      switch (status) {
+        case 'Conforme':
+          return 'Conforme';
+        case 'NaoConforme':
+          return 'Não conforme';
+        case 'NaoSeAdequa':
+          return 'Não se aplica';
+        default:
+          return status;
+      }
+    }
+
+
+// Future<void> _launchPDF(int empresaId) async {
+//     final url = Uri.parse('http://localhost:8080/pdf/getPdf/$empresaId');
+//     if (await canLaunch(url.toString())) {
+//       await launch(url.toString());
+//     } else {
+//       throw 'Não foi possível abrir o PDF';
+//     }
+//   }
+    Future<void> exportPDF(String nomeFantasia) async {
+    // Cria o Uri diretamente
+    final uri = Uri.parse('$URL/pdf/getPdf/$companySelected');
+
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    } else {
+      throw 'Não foi possível abrir o PDF';
+    }
+  }
+
+      /*try {
+        // Realizando a requisição para baixar o PDF
+        final response = await http.get(uri, headers: headers);
+
+
+        // if (response.statusCode == 200) {
+        //   // Obtendo o diretório temporário para salvar o arquivo
+        //   final directory = await getTemporaryDirectory();
+        //   final path = '${directory.path}/$nomeFantasia.pdf';
+
+        //   // Salvando o arquivo no diretório temporário
+        //   final file = File(path);
+        //   await file.writeAsBytes(response.bodyBytes);
+
+        //   // Abrindo o PDF
+        //   await OpenFile.open(path);
+        // } else {
+        //   throw Exception("Erro ao baixar PDF: ${response.statusCode}");
+        // }
+      } catch (error) {
+        debugPrint("Erro ao baixar ou abrir o PDF: $error");
+      }*/
+    // }
+
+
+  static const String URL = 'http://192.168.1.175:8080';
   Map<String, String> headers = {
-    'Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyb290IiwiY2FyZ28iOiJBZG1pbiIsImV4cCI6MTczMTQ1NTU0N30.RwD5NEphOj0HDSdlu3-3-pH63r0W3JbgU3rWVRL3TAI',
+    'Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyb290IiwiY2FyZ28iOiJBZG1pbiIsImV4cCI6MTczMjIyMjY1OH0.Iek9hTiwLhlw0J8Bljy8gYXIGfXhQTo3SioFPToUMHI',
     'Content-Type': 'application/json; charset=UTF-8',
   };
 }

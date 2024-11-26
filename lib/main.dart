@@ -1,3 +1,4 @@
+import 'package:ambientese/main_screen.dart';
 import 'package:flutter/material.dart';
 import 'login_screen.dart';
 
@@ -16,7 +17,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: LoginScreen(), // A tela inicial será a de login
+      home: MainScreen(), // A tela inicial será a de login
     );
   }
 }

@@ -16,6 +16,9 @@ class TabelaGenerica extends StatefulWidget {
   final bool isSelectable;
   final Function(int) onTap;
   final Function(List<int>)? createFormulario;
+  final String? searchStringParameter;
+  final int currentPage;
+  final bool finishList;
 
   TabelaGenerica({
     required this.colunas,
@@ -30,6 +33,9 @@ class TabelaGenerica extends StatefulWidget {
     required this.onSearchIconTap,
     required this.isSelectable,
     this.createFormulario,
+    this.searchStringParameter,
+    required this.currentPage,
+    required this.finishList,
   });
 
   @override
@@ -39,6 +45,17 @@ class TabelaGenerica extends StatefulWidget {
 class _TabelaGenericaState extends State<TabelaGenerica> {
   final TextEditingController _searchController = TextEditingController();
   final List<int> selectedIds = [];
+
+
+  @override
+  void didUpdateWidget(covariant TabelaGenerica oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    // Verifica se 'colunas' mudou de valor
+    if (widget.tituloDoFormulario != oldWidget.tituloDoFormulario) {
+      _searchController.clear(); // Limpa o valor do controlador
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -93,7 +110,8 @@ class _TabelaGenericaState extends State<TabelaGenerica> {
                     decoration: InputDecoration(
                       prefixIcon: GestureDetector(
                         onTap: () {
-                          widget.onSearchIconTap(_searchController.text);
+                          
+                          widget.onSearchIconTap(_searchController.text != widget.searchStringParameter ? _searchController.text : widget.searchStringParameter ?? '');
                         },
                         child: Icon(Icons.search, color: Colors.grey, size: 20),
                       ),
@@ -247,24 +265,27 @@ class _TabelaGenericaState extends State<TabelaGenerica> {
                 Spacer(),
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade200,
+                    color: widget.currentPage > 0 ? Colors.blue.shade50 :  Colors.grey.shade200,
                     borderRadius: BorderRadius.circular(4.0),
-                    border: Border.all(color: Colors.grey, width: 2.0),
+                    border: Border.all(color: widget.currentPage > 0 ? Colors.blue : Colors.grey, width: 2.0),
                   ),
                   child: IconButton(
-                    icon: Icon(Icons.arrow_back, color: Colors.grey),
+                    icon: Icon(
+                      Icons.arrow_back,
+                      color: widget.currentPage > 0 ? Colors.blue : Colors.grey,
+                    ),
                     onPressed: widget.onPageBack,
                   ),
                 ),
                 SizedBox(width: 8),
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.blue.shade50,
+                    color: widget.finishList != true ? Colors.blue.shade50 :  Colors.grey.shade200,
                     borderRadius: BorderRadius.circular(4.0),
-                    border: Border.all(color: Colors.blue, width: 2.0),
+                    border: Border.all(color: widget.finishList != true ? Colors.blue : Colors.grey, width: 2.0),
                   ),
                   child: IconButton(
-                    icon: Icon(Icons.arrow_forward, color: Colors.blue),
+                    icon: Icon(Icons.arrow_forward, color: widget.finishList != true ? Colors.blue : Colors.grey),
                     onPressed: widget.onPageForward,
                   ),
                 ),

@@ -53,7 +53,7 @@ class _CadastroPerguntaFormState extends State<CadastroPerguntaForm> {
               child: Container(
                 width: double.infinity,
                 constraints: BoxConstraints(
-                  minHeight: height - 150,
+                    minHeight: height - 150,
                 ),
                 padding: EdgeInsets.all(16.0),
                 decoration: BoxDecoration(
@@ -119,6 +119,7 @@ class _CadastroPerguntaFormState extends State<CadastroPerguntaForm> {
                         },
                       ),
                       SizedBox(height: height * 0.04),
+                      Spacer(), // Adiciona espaço flexível para empurrar os botões para o final
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -163,7 +164,7 @@ class _CadastroPerguntaFormState extends State<CadastroPerguntaForm> {
                                 padding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                               ),
                               child: Text(
-                                'Adicionar',
+                                widget.initialData == null ? 'Adicionar' : 'Salvar',
                                 style: TextStyle(color: Colors.white, fontSize: 14),
                               ),
                             ),

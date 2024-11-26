@@ -26,7 +26,7 @@ class _TelaInicialState extends State<TelaInicial> {
               child: Container(
                 width: double.infinity,
                 constraints: BoxConstraints(
-                  minHeight: height - 150,
+                  minHeight: height  - 150,
                 ),
                 padding: EdgeInsets.all(16.0),
                 decoration: BoxDecoration(

@@ -13,6 +13,10 @@ dependencies:
   cupertino_icons: ^1.0.8
   http: ^0.13.5
   shared_preferences: ^2.0.0
+  percent_indicator: ^4.2.2
+  path_provider: ^2.0.9
+  open_file: ^3.2.1
+  url_launcher: ^6.0.20
 
 dev_dependencies:
   flutter_test:
