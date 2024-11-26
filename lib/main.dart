@@ -21,7 +21,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: LoginScreen(), // Corrigido para definir a tela inicial como login
+      home: RankingScreen(), // Corrigido para definir a tela inicial como login
     );
   }
 }

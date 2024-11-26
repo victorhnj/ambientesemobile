@@ -1,13 +1,15 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:ambientese/header.dart'; // Certifique-se de que o caminho está correto
+import 'package:ambientese/header.dart';
+import 'package:ambientese/custon_drawer.dart'; // Certifique-se de que o caminho está correto
 import 'package:url_launcher/url_launcher.dart';
 
 class RankingScreen extends StatefulWidget {
   @override
   _RankingScreenState createState() => _RankingScreenState();
 }
+
 
 class _RankingScreenState extends State<RankingScreen> {
   int _currentIndex = 0;
@@ -184,11 +186,11 @@ class _RankingScreenState extends State<RankingScreen> {
                   ),
                 Expanded(
                   child: Container(
-                    margin: EdgeInsets.all(16.0),
+                    margin: EdgeInsets.all(10),
                     padding: EdgeInsets.all(8.0),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(0),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.grey.withOpacity(0.5),
@@ -387,26 +389,33 @@ class _RankingScreenState extends State<RankingScreen> {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16.0, vertical: 8.0),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 0, vertical: 8.0),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.grey,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10.0),
-                          ),
-                          padding: EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 12),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade200,
+                          borderRadius: BorderRadius.circular(4.0),
+                          border: Border.all(color: Colors.grey, width: 2.0),
                         ),
-                        onPressed: _currentPage > 0 ? _previousPage : null,
-                        child: Text('Voltar'),
+                        child: IconButton(
+                          icon: Icon(Icons.arrow_back, color: Colors.grey),
+                          onPressed: _currentPage > 0 ? _previousPage : null,
+                        ),
                       ),
-                      ElevatedButton(
-                        onPressed: _hasMoreData ? _nextPage : null,
-                        child: Text('Próximo'),
+                      SizedBox(width: 8),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.blue.shade50,
+                          borderRadius: BorderRadius.circular(4.0),
+                          border: Border.all(color: Colors.blue, width: 2.0),
+                        ),
+                        child: IconButton(
+                          icon: Icon(Icons.arrow_forward, color: Colors.blue),
+                          onPressed: _hasMoreData ? _nextPage : null,
+                        ),
                       ),
                     ],
                   ),
@@ -434,7 +443,8 @@ class Top3RankingDisplay extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.center, // Alinha os itens no centro
+        mainAxisAlignment:
+            MainAxisAlignment.center, // Alinha os itens no centro
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (top3RankingData.length > 1)
