@@ -1,3 +1,8 @@
+import 'package:ambientese/cadastro_funcionarios.dart';
+import 'package:ambientese/cadastro_perguntas.dart';
+import 'package:ambientese/main_screen.dart';
+import 'package:ambientese/ranking_screen.dart';
+import 'package:ambientese/tela_inicial.dart';
 import 'package:flutter/material.dart';
 import 'login_screen.dart';
 
@@ -16,7 +21,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: LoginScreen(), // A tela inicial será a de login
+      home: LoginScreen(), // Corrigido para definir a tela inicial como login
     );
   }
 }

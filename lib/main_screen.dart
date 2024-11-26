@@ -100,6 +100,7 @@ class _MainScreenState extends State<MainScreen> {
         },),
         TelaInicial(onTap: _onItemTapped),
         ResultadosEmpresaScreen(companyName: 'Johnson & Johnson'),
+        
       ];
 
   @override
@@ -625,7 +626,7 @@ class _MainScreenState extends State<MainScreen> {
 
   static const String URL = 'http://localhost:8080';
   Map<String, String> headers = {
-    'Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyb290IiwiY2FyZ28iOiJBZG1pbiIsImV4cCI6MTczMTQ1NTU0N30.RwD5NEphOj0HDSdlu3-3-pH63r0W3JbgU3rWVRL3TAI',
+    'Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyb290IiwiY2FyZ28iOiJBZG1pbiIsImV4cCI6MTczMjYwMDUwMH0.FEAYxrG6VU8IoUQ6G6YkP3mrxK05Exz9oYFdBXaMy5A',
     'Content-Type': 'application/json; charset=UTF-8',
   };
 }

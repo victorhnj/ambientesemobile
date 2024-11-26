@@ -1,3 +1,4 @@
+import 'package:ambientese/ranking_screen.dart';
 import 'package:flutter/material.dart';
 
 class CustomDrawer extends StatelessWidget {
@@ -43,10 +44,15 @@ class CustomDrawer extends StatelessWidget {
               ),
             ],
           ),
-          ListTile(
+            ListTile(
             title: Text('Ranking', style: TextStyle(fontSize: 18)),
-            onTap: () => onTap(3),
-          ),
+            onTap: () {
+              Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => RankingScreen()),
+              );
+            },
+            ),
           ListTile(
             title: Text('Avaliação', style: TextStyle(fontSize: 18)),
             onTap: () => onTap(4),
