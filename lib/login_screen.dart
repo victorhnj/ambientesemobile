@@ -15,14 +15,14 @@ class LoginScreen extends StatelessWidget {
             backgroundColor: Color(0xFF0077C8),
             title: Row(
               mainAxisAlignment: MainAxisAlignment.center,
-                children: [
+              children: [
                 SizedBox(
                   height: 80, // Aumentado de 60 para 80
                   child: Image.asset(
-                  'images/logo.png', // Logo da sua aplicação
+                    'images/logo.png', // Logo da sua aplicação
                   ),
                 ),
-                ],
+              ],
             ),
           ),
         ),
