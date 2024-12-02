@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-// import '../header.dart';
 import './avaliacao_resposta.dart';
 
 class AvaliacaoPesquisa extends StatefulWidget {
@@ -9,31 +8,30 @@ class AvaliacaoPesquisa extends StatefulWidget {
 
   const AvaliacaoPesquisa({super.key, required this.saveCompanyData});
 
-
   @override
   _AvaliacaoState createState() => _AvaliacaoState();
 }
 
 class _AvaliacaoState extends State<AvaliacaoPesquisa> {
-  List<dynamic> empresas = []; // Lista para armazenar empresas
-  String query = ''; // Armazena a consulta de busca
-  FocusNode _focusNode = FocusNode(); // FocusNode para o campo de texto
-  dynamic empresaSelecionada; // Variável para armazenar a empresa selecionada
-  TextEditingController _textController = TextEditingController(); // Controlador de texto
-
+  List<dynamic> empresas = []; 
+  String query = ''; 
+  FocusNode _focusNode = FocusNode(); 
+  dynamic empresaSelecionada; 
+  TextEditingController _textController =
+      TextEditingController(); 
 
   @override
   void initState() {
     super.initState();
     _focusNode.addListener(() {
-      setState(() {}); // Atualiza o estado quando o foco muda
+      setState(() {}); 
     });
   }
 
   @override
   void dispose() {
-    _focusNode.dispose(); // Libera o FocusNode quando o widget é descartado
-    _textController.dispose(); // Libera o controlador de texto
+    _focusNode.dispose(); 
+    _textController.dispose(); 
     super.dispose();
   }
 
@@ -41,31 +39,36 @@ class _AvaliacaoState extends State<AvaliacaoPesquisa> {
   Future<void> buscarEmpresas(String nome) async {
     if (nome.isEmpty) {
       setState(() {
-        empresas = []; // Limpa a lista se a consulta estiver vazia
+        empresas = []; 
       });
       return;
     }
 
     try {
-      final queryParams = {'nome': nome.isNotEmpty ? nome : ''}; // Parâmetros de consulta
-      const String URL = 'http://192.168.1.175:8080';
-      final uri = Uri.parse('$URL/auth/Empresa/avaliacao/search?nome=${queryParams['nome']}');
-      final response = await http.get(uri, headers: headers); // Faz a requisição
+      final queryParams = {
+        'nome': nome.isNotEmpty ? nome : ''
+      }; 
+      const String URL = 'http://localhost:8080';
+      final uri = Uri.parse(
+          '$URL/auth/Empresa/avaliacao/search?nome=${queryParams['nome']}');
+      final response =
+          await http.get(uri, headers: headers); 
 
       if (response.statusCode == 200) {
         setState(() {
-          empresas = json.decode(response.body); // Decodifica a resposta JSON
+          empresas = json.decode(response.body);
         });
       } else {
         print('Erro ao buscar empresas: ${response.statusCode}');
       }
     } catch (e) {
-      print('Erro de parsing ou de conexão: $e'); // Captura e exibe a exceção
+      print('Erro de parsing ou de conexão: $e');
     }
   }
 
   Map<String, String> headers = {
-    'Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyb290IiwiY2FyZ28iOiJBZG1pbiIsImV4cCI6MTczMjIyMjY1OH0.Iek9hTiwLhlw0J8Bljy8gYXIGfXhQTo3SioFPToUMHI',
+    'Authorization':
+        'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyb290IiwiY2FyZ28iOiJBZG1pbiIsImV4cCI6MTczMzA4NzM5OX0.WV_PTMbPyou3ko8rM--G-u_XNMSfcTKBZO0Q_0g4kic',
     'Content-Type': 'application/json; charset=UTF-8',
   };
 
@@ -75,15 +78,15 @@ class _AvaliacaoState extends State<AvaliacaoPesquisa> {
       backgroundColor: Colors.white,
       body: GestureDetector(
         onTap: () {
-          FocusScope.of(context).unfocus(); // Remove o foco do campo de texto
+          FocusScope.of(context).unfocus(); 
           setState(() {
-            empresas = []; // Limpa a lista de empresas
+            empresas = []; 
           });
         },
         child: SingleChildScrollView(
           child: Column(
             children: [
-              SizedBox(height: 100), // Adiciona uma margem de 100
+              SizedBox(height: 100), 
               Center(
                 child: Column(
                   children: [
@@ -102,20 +105,24 @@ class _AvaliacaoState extends State<AvaliacaoPesquisa> {
                             children: [
                               Expanded(
                                 child: TextField(
-                                  controller: _textController, // Atribui o controlador de texto
-                                  focusNode: _focusNode, // Atribui o FocusNode ao TextField
+                                  controller:
+                                      _textController, 
+                                  focusNode:
+                                      _focusNode, 
                                   onChanged: (value) {
-                                    query = value; // Atualiza a consulta de busca
-                                    buscarEmpresas(value); // Chama a função de busca
+                                    query =
+                                        value; 
+                                    buscarEmpresas(
+                                        value); 
                                     setState(() {
                                       empresaSelecionada = empresas.firstWhere(
-                                        (empresa) => empresa['nomeFantasia'] == value,
+                                        (empresa) =>
+                                            empresa['nomeFantasia'] == value,
                                         orElse: () => null,
                                       );
                                     });
                                   },
                                   onTap: () {
-                                    // Quando o campo de texto é clicado, busca empresas
                                     buscarEmpresas(query);
                                   },
                                   decoration: InputDecoration(
@@ -146,7 +153,7 @@ class _AvaliacaoState extends State<AvaliacaoPesquisa> {
                             duration: Duration(milliseconds: 500),
                             child: empresas.isNotEmpty
                                 ? Container(
-                                    width: 300, // Define a largura da lista
+                                    width: 300, 
                                     height: 300,
                                     margin: const EdgeInsets.only(top: 8.0),
                                     decoration: BoxDecoration(
@@ -158,15 +165,23 @@ class _AvaliacaoState extends State<AvaliacaoPesquisa> {
                                       itemBuilder: (context, index) {
                                         final empresa = empresas[index];
                                         return ListTile(
-                                          title: Text(empresa['nomeFantasia'] ?? 'Nome não disponível'),
-                                          tileColor: index % 2 == 0 ? Colors.white : Colors.grey[200], // Intercalação de cores
+                                          title: Text(empresa['nomeFantasia'] ??
+                                              'Nome não disponível'),
+                                          tileColor: index % 2 == 0
+                                              ? Colors.white
+                                              : Colors.grey[
+                                                  200], 
                                           onTap: () {
                                             setState(() {
-                                              empresaSelecionada = empresa; // Armazena a empresa selecionada
-                                              _textController.text = empresa['nomeFantasia'] ?? ''; // Preenche o campo de texto
+                                              empresaSelecionada =
+                                                  empresa;
+                                              _textController.text = empresa[
+                                                      'nomeFantasia'] ??
+                                                  ''; 
                                             });
                                           },
-                                          selected: empresaSelecionada == empresa,
+                                          selected:
+                                              empresaSelecionada == empresa,
                                         );
                                       },
                                     ),
@@ -177,19 +192,20 @@ class _AvaliacaoState extends State<AvaliacaoPesquisa> {
                       ),
                     ),
                     SizedBox(height: 16),
-                    // Mensagem caso não haja empresas
-                    if (empresas.isEmpty)
-                      SizedBox(height: 16),
+                    if (empresas.isEmpty) SizedBox(height: 16),
                     AnimatedOpacity(
                       opacity: empresaSelecionada != null ? 1.0 : 0.0,
                       duration: Duration(milliseconds: 500),
                       child: ElevatedButton(
                         onPressed: empresaSelecionada != null
-                            ? () => widget.saveCompanyData(empresaSelecionada['id'], empresaSelecionada['nomeFantasia'])
+                            ? () => widget.saveCompanyData(
+                                empresaSelecionada['id'],
+                                empresaSelecionada['nomeFantasia'])
                             : null,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Color(0xFF0077c8),
-                          padding: EdgeInsets.symmetric(horizontal: 34, vertical: 22),
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 34, vertical: 22),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8.0),
                           ),

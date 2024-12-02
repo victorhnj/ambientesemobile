@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class CustomDrawer extends StatelessWidget {
   final Function(int, [bool]) onTap;
-  
+
   CustomDrawer({required this.onTap});
 
   @override
@@ -27,29 +27,40 @@ class CustomDrawer extends StatelessWidget {
             children: [
               ListTile(
                 title: Text('Cadastrar Empresa'),
-                onTap: () => onTap(0),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  onTap(0);
+                },
               ),
               ListTile(
                 title: Text('Cadastrar Pergunta'),
-                onTap: () => onTap(1),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  onTap(1);
+                },
               ),
               ListTile(
                 title: Text('Cadastrar Funcionário'),
-                onTap: () => onTap(2),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  onTap(2);
+                },
               ),
-              // ListTile(
-              //   title: Text('Cadastrar Formulário'),
-              //   onTap: () => onTap(1, true),
-              // ),
             ],
           ),
           ListTile(
             title: Text('Avaliação', style: TextStyle(fontSize: 18)),
-            onTap: () => onTap(1, true),
+            onTap: () {
+              Navigator.of(context).pop();
+              onTap(1, true);
+            },
           ),
           ListTile(
             title: Text('Ranking', style: TextStyle(fontSize: 18)),
-            onTap: () => onTap(3),
+            onTap: () {
+              Navigator.of(context).pop();
+              onTap(10);
+            },
           ),
         ],
       ),

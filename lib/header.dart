@@ -28,17 +28,18 @@ class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
             ),
             GestureDetector(
               onTap: () {
-              onTap(6);
+                onTap(6);
               },
               child: Container(
-              padding: EdgeInsets.only(right: 16.0),
-              child: SizedBox(
-                height: 60,
-                child: Image.asset(
-                'images/logo.png',
-                fit: BoxFit.contain,
+                margin: EdgeInsets.only(top: 10),
+                padding: EdgeInsets.only(right: 16.0),
+                child: SizedBox(
+                  height: 60,
+                  child: Image.asset(
+                    'images/logo.png',
+                    fit: BoxFit.contain,
+                  ),
                 ),
-              ),
               ),
             ),
           ],

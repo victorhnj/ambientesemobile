@@ -9,13 +9,19 @@ class AvaliacaoResposta extends StatefulWidget {
   final List<dynamic> perguntasAmbiental;
   final void Function(List<Map<String, dynamic>> answers)? processarRespostas;
 
-  const AvaliacaoResposta({super.key, required this.perguntasGovernamental, required this.perguntasSocial, required this.perguntasAmbiental, required this.processarRespostas});
+  const AvaliacaoResposta(
+      {super.key,
+      required this.perguntasGovernamental,
+      required this.perguntasSocial,
+      required this.perguntasAmbiental,
+      required this.processarRespostas});
 
   @override
   _AvaliacaoState createState() => _AvaliacaoState();
 }
 
-class _AvaliacaoState extends State<AvaliacaoResposta> with SingleTickerProviderStateMixin {
+class _AvaliacaoState extends State<AvaliacaoResposta>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final ScrollController _scrollController = ScrollController();
 
@@ -29,24 +35,31 @@ class _AvaliacaoState extends State<AvaliacaoResposta> with SingleTickerProvider
 
   List<int> unansweredQuestions = [];
 
-  // Substitua pelo seu token JWT real
-  final String token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyb290IiwiY2FyZ28iOiJBZG1pbiIsImV4cCI6MTczMTk3NTgxOH0.ij6zLZnCDYSl9MvaRqLD3oNU1ihy0qRhZ-CDUfWQ5AI'; // Coloque o seu token JWT aqui
+  final String token =
+      'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyb290IiwiY2FyZ28iOiJBZG1pbiIsImV4cCI6MTczMzA4NzM5OX0.WV_PTMbPyou3ko8rM--G-u_XNMSfcTKBZO0Q_0g4kic'; 
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    // fetchQuestions(); // Carregar perguntas da API
 
     // Inicializar listas locais com os valores recebidos por parâmetro
-    perguntasGovernamental = widget.perguntasGovernamental.map((item) => item['perguntaDescricao']  as String) .toList();
-    perguntasSocial = widget.perguntasSocial.map((item) => item['perguntaDescricao'] as String) .toList();
-    perguntasAmbiental = widget.perguntasAmbiental.map((item) => item['perguntaDescricao']  as String) .toList();
+    perguntasGovernamental = widget.perguntasGovernamental
+        .map((item) => item['perguntaDescricao'] as String)
+        .toList();
+    perguntasSocial = widget.perguntasSocial
+        .map((item) => item['perguntaDescricao'] as String)
+        .toList();
+    perguntasAmbiental = widget.perguntasAmbiental
+        .map((item) => item['perguntaDescricao'] as String)
+        .toList();
 
-    selectedOptionsGovernamental = List<String?>.filled(widget.perguntasGovernamental.length, null);
-    selectedOptionsSocial = List<String?>.filled(widget.perguntasSocial.length, null);
-    selectedOptionsAmbiental = List<String?>.filled(widget.perguntasAmbiental.length, null);
-
+    selectedOptionsGovernamental =
+        List<String?>.filled(widget.perguntasGovernamental.length, null);
+    selectedOptionsSocial =
+        List<String?>.filled(widget.perguntasSocial.length, null);
+    selectedOptionsAmbiental =
+        List<String?>.filled(widget.perguntasAmbiental.length, null);
   }
 
   @override
@@ -59,14 +72,13 @@ class _AvaliacaoState extends State<AvaliacaoResposta> with SingleTickerProvider
   // Função para fazer a requisição HTTP e buscar as perguntas
   Future<void> fetchQuestions() async {
     final response = await http.get(
-      Uri.parse('http://localhost:8080/auth/perguntas'), // URL da sua API
+      Uri.parse('http://localhost:8080/auth/perguntas'), 
       headers: {
-        'Authorization': 'Bearer $token', // Enviar o token JWT no cabeçalho
+        'Authorization': 'Bearer $token',
       },
     );
 
     if (response.statusCode == 200) {
-      // Sucesso: Parse as perguntas do JSON
       final data = json.decode(response.body);
       setState(() {
         perguntasGovernamental = List<String>.from(data['governamental']);
@@ -74,7 +86,6 @@ class _AvaliacaoState extends State<AvaliacaoResposta> with SingleTickerProvider
         perguntasSocial = List<String>.from(data['social']);
       });
     } else {
-      // Em caso de erro, você pode exibir um erro ou algo similar
       print("Erro ao carregar perguntas: ${response.statusCode}");
     }
   }
@@ -100,7 +111,8 @@ class _AvaliacaoState extends State<AvaliacaoResposta> with SingleTickerProvider
               controller: _tabController,
               physics: NeverScrollableScrollPhysics(),
               children: [
-                buildSection(perguntasGovernamental, selectedOptionsGovernamental),
+                buildSection(
+                    perguntasGovernamental, selectedOptionsGovernamental),
                 buildSection(perguntasAmbiental, selectedOptionsAmbiental),
                 buildSection(perguntasSocial, selectedOptionsSocial),
               ],
@@ -120,95 +132,88 @@ class _AvaliacaoState extends State<AvaliacaoResposta> with SingleTickerProvider
                 ),
               ],
             ),
-
-
-
             child: Row(
-  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-  children: [
-    Expanded(
-      child: ElevatedButton(
-        onPressed: _tabController.index > 0
-            ? () {
-                _tabController.animateTo(_tabController.index - 1);
-                setState(() {
-                  _tabController.index - 1;
-                });
-              }
-            : null,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.grey,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10.0),
-          ),
-          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-        ),
-        child: Text(
-          'Voltar',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 14,
-          ),
-        ),
-      ),
-    ),
-    SizedBox(width: 8),
-    Expanded(
-      child: ElevatedButton(
-        onPressed: _tabController.index < 2
-            ? () {
-                // if (validateCurrentTab()) {
-                  _tabController.animateTo(_tabController.index + 1);
-                  setState(() {
-                    _tabController.index - 1;
-                  });
-                // } else {
-                //   // Exibe um diálogo de erro se houver perguntas não respondidas
-                //   showDialogModal();
-                // }
-              }
-            : () {
-                if (validateCurrentTab()) {
-                  // Coleta as respostas ao finalizar
-                  List<Map<String, dynamic>> answers = collectAnswers();
-                  widget.processarRespostas!(answers);
-                } else {
-                  // Exibe um diálogo de erro se houver perguntas não respondidas
-                  showDialogModal();
-                }
-              },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: _tabController.index < 2 ? Colors.blue : Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10.0),
-            side: _tabController.index < 2
-                ? BorderSide.none
-                : BorderSide(color: Colors.black), // Borda preta ao finalizar
-          ),
-          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-        ),
-        child: Text(
-          _tabController.index < 2 ? 'Próximo' : 'Finalizar',
-          style: TextStyle(
-            color: _tabController.index < 2 ? Colors.white : Colors.black,
-            fontSize: 14,
-          ),
-        ),
-      ),
-    ),
-  ],
-),
-
-
-
-
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: _tabController.index > 0
+                        ? () {
+                            _tabController.animateTo(_tabController.index - 1);
+                            setState(() {
+                              _tabController.index - 1;
+                            });
+                          }
+                        : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.grey,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                    ),
+                    child: Text(
+                      'Voltar',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(width: 8),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: _tabController.index < 2
+                        ? () {
+                            _tabController.animateTo(_tabController.index + 1);
+                            setState(() {
+                              _tabController.index - 1;
+                            });
+                          }
+                        : () {
+                            if (validateCurrentTab()) {
+                              // Coleta as respostas ao finalizar
+                              List<Map<String, dynamic>> answers =
+                                  collectAnswers();
+                              widget.processarRespostas!(answers);
+                            } else {
+                              showDialogModal();
+                            }
+                          },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor:
+                          _tabController.index < 2 ? Colors.blue : Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                        side: _tabController.index < 2
+                            ? BorderSide.none
+                            : BorderSide(
+                                color:
+                                    Colors.black), 
+                      ),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                    ),
+                    child: Text(
+                      _tabController.index < 2 ? 'Próximo' : 'Finalizar',
+                      style: TextStyle(
+                        color: _tabController.index < 2
+                            ? Colors.white
+                            : Colors.black,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
-
-
 
   // Método para construir a seção de perguntas com base nas perguntas da API
   Widget buildSection(List<String> perguntas, List<String?> selectedOptions) {
@@ -222,13 +227,16 @@ class _AvaliacaoState extends State<AvaliacaoResposta> with SingleTickerProvider
   }
 
   // Método para construir o cartão de pergunta
-  Widget buildQuestionCard(int index, String pergunta, List<String?> selectedOptions) {
+  Widget buildQuestionCard(
+      int index, String pergunta, List<String?> selectedOptions) {
     bool isUnanswered = unansweredQuestions.contains(index);
     return Container(
       margin: EdgeInsets.all(8.0),
       padding: EdgeInsets.all(8.0),
       decoration: BoxDecoration(
-        color: isUnanswered ? const Color.fromARGB(255, 255, 255, 255) : Colors.white,
+        color: isUnanswered
+            ? const Color.fromARGB(255, 255, 255, 255)
+            : Colors.white,
         border: Border.all(
           color: isUnanswered ? Colors.red : Colors.blue,
           width: 2.0,
@@ -257,7 +265,8 @@ class _AvaliacaoState extends State<AvaliacaoResposta> with SingleTickerProvider
                   });
                 },
                 activeColor: Colors.blue,
-                contentPadding: EdgeInsets.symmetric(vertical: 0.0, horizontal: 0.0),
+                contentPadding:
+                    EdgeInsets.symmetric(vertical: 0.0, horizontal: 0.0),
                 dense: true,
               ),
               RadioListTile<String>(
@@ -271,7 +280,8 @@ class _AvaliacaoState extends State<AvaliacaoResposta> with SingleTickerProvider
                   });
                 },
                 activeColor: Colors.blue,
-                contentPadding: EdgeInsets.symmetric(vertical: 0.0, horizontal: 0.0),
+                contentPadding:
+                    EdgeInsets.symmetric(vertical: 0.0, horizontal: 0.0),
                 dense: true,
               ),
               RadioListTile<String>(
@@ -285,7 +295,8 @@ class _AvaliacaoState extends State<AvaliacaoResposta> with SingleTickerProvider
                   });
                 },
                 activeColor: Colors.blue,
-                contentPadding: EdgeInsets.symmetric(vertical: 0.0, horizontal: 0.0),
+                contentPadding:
+                    EdgeInsets.symmetric(vertical: 0.0, horizontal: 0.0),
                 dense: true,
               ),
             ],
@@ -296,21 +307,9 @@ class _AvaliacaoState extends State<AvaliacaoResposta> with SingleTickerProvider
   }
 
   bool validateCurrentTab() {
-    List<String?> currentOptions;
-    // switch (_tabController.index) {
-    //   case 0:
-    //     currentOptions = selectedOptionsGovernamental;
-    //     break;
-    //   case 1:
-    //     currentOptions = selectedOptionsAmbiental;
-    //     break;
-    //   case 2:
-    //     currentOptions = selectedOptionsSocial;
-    //     break;
-    //   default:
-    //     currentOptions = [];
-    // }
-    return !selectedOptionsGovernamental.contains(null) && !selectedOptionsAmbiental.contains(null) && !selectedOptionsSocial.contains(null);
+    return !selectedOptionsGovernamental.contains(null) &&
+        !selectedOptionsAmbiental.contains(null) &&
+        !selectedOptionsSocial.contains(null);
   }
 
   showDialogModal() {
@@ -333,16 +332,14 @@ class _AvaliacaoState extends State<AvaliacaoResposta> with SingleTickerProvider
     );
   }
 
-
-
-
   List<Map<String, dynamic>> collectAnswers() {
     List<Map<String, dynamic>> formattedAnswers = [];
 
     // Percorre as perguntas governamentais e coleta as respostas
     for (int i = 0; i < widget.perguntasGovernamental.length; i++) {
       formattedAnswers.add({
-        'perguntaId': widget.perguntasGovernamental[i]['perguntaId'], // Usa o perguntaId da pergunta original
+        'perguntaId': widget.perguntasGovernamental[i]
+            ['perguntaId'], // Usa o perguntaId da pergunta original
         'respostaUsuario': selectedOptionsGovernamental[i],
         'perguntaEixo': 'Governamental',
       });
@@ -351,7 +348,8 @@ class _AvaliacaoState extends State<AvaliacaoResposta> with SingleTickerProvider
     // Percorre as perguntas ambientais e coleta as respostas
     for (int i = 0; i < widget.perguntasAmbiental.length; i++) {
       formattedAnswers.add({
-        'perguntaId': widget.perguntasAmbiental[i]['perguntaId'], // Usa o perguntaId da pergunta original
+        'perguntaId': widget.perguntasAmbiental[i]
+            ['perguntaId'], // Usa o perguntaId da pergunta original
         'respostaUsuario': selectedOptionsAmbiental[i],
         'perguntaEixo': 'Ambiental',
       });
@@ -360,7 +358,8 @@ class _AvaliacaoState extends State<AvaliacaoResposta> with SingleTickerProvider
     // Percorre as perguntas sociais e coleta as respostas
     for (int i = 0; i < widget.perguntasSocial.length; i++) {
       formattedAnswers.add({
-        'perguntaId': widget.perguntasSocial[i]['perguntaId'], // Usa o perguntaId da pergunta original
+        'perguntaId': widget.perguntasSocial[i]
+            ['perguntaId'], // Usa o perguntaId da pergunta original
         'respostaUsuario': selectedOptionsSocial[i],
         'perguntaEixo': 'Social',
       });
@@ -368,5 +367,4 @@ class _AvaliacaoState extends State<AvaliacaoResposta> with SingleTickerProvider
 
     return formattedAnswers;
   }
-
 }

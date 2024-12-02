@@ -7,21 +7,30 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: ResultadosEmpresaScreen(companyName: '', screenData: [], exportPDF: (String nomeFantasia) {  }, onTap: (int ) {  },),
+      home: ResultadosEmpresaScreen(
+        companyName: '',
+        screenData: [],
+        exportPDF: (String nomeFantasia) {},
+        onTap: (int) {},
+      ),
     );
   }
 }
-
 class ResultadosEmpresaScreen extends StatefulWidget {
   final Function(int) onTap;
   final String companyName;
   final List<Map<String, dynamic>> screenData;
   final void Function(String nomeFantasia)? exportPDF;
 
-  ResultadosEmpresaScreen({required this.companyName, required this.screenData, required this.exportPDF, required this.onTap});
+  ResultadosEmpresaScreen(
+      {required this.companyName,
+      required this.screenData,
+      required this.exportPDF,
+      required this.onTap});
 
   @override
-  _ResultadosEmpresaScreenState createState() => _ResultadosEmpresaScreenState();
+  _ResultadosEmpresaScreenState createState() =>
+      _ResultadosEmpresaScreenState();
 }
 
 class DynamicProgressCircle extends StatelessWidget {
@@ -44,7 +53,7 @@ class DynamicProgressCircle extends StatelessWidget {
         CircularPercentIndicator(
           radius: 60.0,
           lineWidth: 10.0,
-          percent: percentage / 100, // Valor de 0 a 1
+          percent: percentage / 100,
           center: Text(
             "${percentage.toStringAsFixed(0)}%",
             style: const TextStyle(
@@ -88,7 +97,7 @@ class _ResultadosEmpresaScreenState extends State<ResultadosEmpresaScreen> {
     _screenData = widget.screenData;
   }
 
-@override
+  @override
   Widget build(BuildContext context) {
     final currentScreen = _screenData[_currentIndex];
 
@@ -115,7 +124,7 @@ class _ResultadosEmpresaScreenState extends State<ResultadosEmpresaScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-             DynamicProgressCircle(
+            DynamicProgressCircle(
               percentage: currentScreen['percentage'],
               label: "",
               color: currentScreen['color'],
@@ -189,23 +198,23 @@ class _ResultadosEmpresaScreenState extends State<ResultadosEmpresaScreen> {
             ),
 
             const SizedBox(height: 16),
-            // const SizedBox(height: height * 0.04),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [  
+              children: [
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: _currentIndex > 0 ?
-                      () => setState(() {
-                        _currentIndex--;
-                      }) :
-                      null,
+                    onPressed: _currentIndex > 0
+                        ? () => setState(() {
+                              _currentIndex--;
+                            })
+                        : null,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.grey,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10.0),
                       ),
-                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                     ),
                     child: Text(
                       'Voltar',
@@ -216,7 +225,6 @@ class _ResultadosEmpresaScreenState extends State<ResultadosEmpresaScreen> {
                     ),
                   ),
                 ),
-
                 SizedBox(
                   width: 8,
                 ),
@@ -224,24 +232,23 @@ class _ResultadosEmpresaScreenState extends State<ResultadosEmpresaScreen> {
                   child: ElevatedButton(
                     onPressed: () => exportPDF(widget.companyName),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white, // Fundo branco
+                      backgroundColor: Colors.white, 
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10.0),
-                        side: BorderSide(color: Colors.black), // Borda preta
+                        side: BorderSide(color: Colors.black),
                       ),
-                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                     ),
                     child: Text(
                       'PDF',
                       style: TextStyle(
-                        color: Colors.black, // Texto preto
+                        color: Colors.black,
                         fontSize: 14,
                       ),
                     ),
                   ),
                 ),
-
-
                 SizedBox(width: 8),
                 Expanded(
                   child: ElevatedButton(
@@ -259,10 +266,13 @@ class _ResultadosEmpresaScreenState extends State<ResultadosEmpresaScreen> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10.0),
                       ),
-                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                     ),
                     child: Text(
-                      _currentIndex < _screenData.length - 1 ? 'Próximo' : 'Finalizar',
+                      _currentIndex < _screenData.length - 1
+                          ? 'Próximo'
+                          : 'Finalizar',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 14,
@@ -272,7 +282,6 @@ class _ResultadosEmpresaScreenState extends State<ResultadosEmpresaScreen> {
                 ),
               ],
             ),
-
           ],
         ),
       ),

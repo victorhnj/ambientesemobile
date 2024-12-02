@@ -17,30 +17,31 @@ import 'resultado_avaliacao.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'avaliacao_pesquisa.dart';
+import 'rankig_screen.dart';
+
 class MainScreen extends StatefulWidget {
+  String token;
+  MainScreen({required this.token});
+
   @override
   _MainScreenState createState() => _MainScreenState();
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _currentIndex = 6;
+  int _currentIndex = 10;
   bool isFormulario = true;
-
+  String? token;
   String tituloDoFormulario = '';
   List<String> colunas = [];
-  // List<List<dynamic>> dados = [];
   List<Map<String, dynamic>> dados = [];
-
   Map<String, dynamic>? initialData;
-
   int currentPage = 0;
   String searchString = '';
-
 
   // Para a realização dos formulários
   List<int> selectedIdsForm = [];
   int companySelected = -1;
-  String companySelectedName= '';
+  String companySelectedName = '';
   dynamic governamental = [];
   dynamic ambiental = [];
   dynamic social = [];
@@ -58,12 +59,12 @@ class _MainScreenState extends State<MainScreen> {
             _fetchEmpresa(index);
           },
           onDelete: (int index) {
-             _deleteEmpresa(index);
+            _deleteEmpresa(index);
           },
           onTap: _onItemTapped,
           onPageBack: _decrementPage,
           onPageForward: _incrementPage,
-          indexTelaFormulario: 3, 
+          indexTelaFormulario: 3,
           onSearchIconTap: (String value) {
             setState(() {
               currentPage = 0;
@@ -84,7 +85,7 @@ class _MainScreenState extends State<MainScreen> {
             _fetchPergunta(index);
           },
           onDelete: (int index) {
-             _deletePergunta(index);
+            _deletePergunta(index);
           },
           onTap: _onItemTapped,
           onPageBack: _decrementPage,
@@ -113,7 +114,7 @@ class _MainScreenState extends State<MainScreen> {
             _fetchFuncionario(index);
           },
           onDelete: (int index) {
-             _deleteFuncionario(index);
+            _deleteFuncionario(index);
           },
           onTap: _onItemTapped,
           onPageBack: _decrementPage,
@@ -131,30 +132,77 @@ class _MainScreenState extends State<MainScreen> {
           currentPage: currentPage,
           finishList: finishList,
         ),
-        CadastroForm(onTap: _onItemTapped, initialData: initialData, onSave: (updatedData, isEdit) {
-          (isEdit == 1) ? _editEmpresa(initialData?['id'], updatedData) : _addEmpresa(updatedData);
-        }, errorMessage: _errorMessage),
-        CadastroPerguntaForm(onTap: _onItemTapped, initialData: initialData, onSave: (updatedData, isEdit) {
-          (isEdit == 1) ? _editPergunta(initialData?['id'], updatedData) : _addPergunta(updatedData);
-        },),
-        CadastroFuncionarioForm(onTap: _onItemTapped, initialData: initialData, onSave: (updatedData, isEdit) {
-          (isEdit == 1) ? _editFuncionario(initialData?['id'], updatedData) : _addFuncionario(updatedData); 
-        },),
+        CadastroForm(
+            onTap: _onItemTapped,
+            initialData: initialData,
+            onSave: (updatedData, isEdit) {
+              (isEdit == 1)
+                  ? _editEmpresa(initialData?['id'], updatedData)
+                  : _addEmpresa(updatedData);
+            },
+            errorMessage: _errorMessage),
+        CadastroPerguntaForm(
+          onTap: _onItemTapped,
+          initialData: initialData,
+          onSave: (updatedData, isEdit) {
+            (isEdit == 1)
+                ? _editPergunta(initialData?['id'], updatedData)
+                : _addPergunta(updatedData);
+          },
+        ),
+        CadastroFuncionarioForm(
+          onTap: _onItemTapped,
+          initialData: initialData,
+          onSave: (updatedData, isEdit) {
+            (isEdit == 1)
+                ? _editFuncionario(initialData?['id'], updatedData)
+                : _addFuncionario(updatedData);
+          },
+        ),
         TelaInicial(onTap: _onItemTapped),
-        ResultadosEmpresaScreen(companyName: companySelectedName, screenData: dadosResultadoAvaliacao, exportPDF: (nomeFantasia) => { exportPDF(nomeFantasia) }, onTap: _onItemTapped,),
-        AvaliacaoPesquisa(saveCompanyData: (companyId, companyName) { companySelected = companyId; companySelectedName = companyName; _fetchEmpresaPerguntas(); },),
-        AvaliacaoResposta(perguntasGovernamental: governamental, perguntasAmbiental: ambiental, perguntasSocial: social, processarRespostas: (answers) => { processarRespostas(answers) },),
+        ResultadosEmpresaScreen(
+          companyName: companySelectedName,
+          screenData: dadosResultadoAvaliacao,
+          exportPDF: (nomeFantasia) => {exportPDF(nomeFantasia)},
+          onTap: _onItemTapped,
+        ),
+        AvaliacaoPesquisa(
+          saveCompanyData: (companyId, companyName) {
+            companySelected = companyId;
+            companySelectedName = companyName;
+            _fetchEmpresaPerguntas();
+          },
+        ),
+        AvaliacaoResposta(
+          perguntasGovernamental: governamental,
+          perguntasAmbiental: ambiental,
+          perguntasSocial: social,
+          processarRespostas: (answers) => {processarRespostas(answers)},
+        ),
+        RankingScreen(
+          finishList1: finishList,
+          currentPage1: currentPage,
+        ),
       ];
 
   @override
   void initState() {
     super.initState();
-    _fetchDataEmpresa(); // Busca inicial dos dados de empresas
+    _fetchDataEmpresa(); 
+    token = widget.token;
+  }
+
+  final String URL = 'http://localhost:8080';
+  Map<String, String> get headers {
+    return {
+      'Authorization': 'Bearer $token', 
+      'Content-Type': 'application/json; charset=UTF-8',
+    };
   }
 
   void _fetchDataEmpresa([search = '']) async {
     setState(() {
-      isLoading = true; // Inicia o estado de carregamento
+      isLoading = true; 
     });
 
     try {
@@ -173,9 +221,10 @@ class _MainScreenState extends State<MainScreen> {
               'Nenhum dado foi encontrado!',
               style: TextStyle(color: Colors.white),
             ),
-            backgroundColor: Colors.red, // Cor de fundo do Snackbar para sucesso
-            behavior: SnackBarBehavior.floating, // Exibe o Snackbar flutuante
-            duration: Duration(seconds: 3), // Duração do Snackbar
+            backgroundColor:
+                Colors.red, 
+            behavior: SnackBarBehavior.floating, 
+            duration: Duration(seconds: 3), 
           ),
         );
       }
@@ -183,35 +232,36 @@ class _MainScreenState extends State<MainScreen> {
       print('Erro ao buscar dados: $e');
     } finally {
       setState(() {
-        isLoading = false; // Finaliza o estado de carregamento
+        isLoading = false; 
       });
     }
   }
 
   void _fetchDataPerguntas([search = '']) async {
     setState(() {
-      isLoading = true; // Inicia o estado de carregamento
+      isLoading = true; 
     });
 
     try {
       final resultado = await buscarDadosPerguntas(currentPage, search);
       setState(() {
         dados = resultado as List<Map<String, dynamic>>;
-        tituloDoFormulario = 'PERGUNTAS';
+        tituloDoFormulario = isFormulario ? 'FORMULÁRIO' : 'PERGUNTAS';
         colunas = ['Pergunta', 'Eixo'];
+        finishList = dados[0]['finishList'];
       });
     } catch (e) {
       print('Erro ao buscar dados: $e');
     } finally {
       setState(() {
-        isLoading = false; // Finaliza o estado de carregamento
+        isLoading = false; 
       });
     }
   }
 
   void _fetchDataFuncionarios([search = '']) async {
     setState(() {
-      isLoading = true; // Inicia o estado de carregamento
+      isLoading = true; 
     });
 
     try {
@@ -220,12 +270,13 @@ class _MainScreenState extends State<MainScreen> {
         dados = resultado as List<Map<String, dynamic>>;
         tituloDoFormulario = 'FUNCIONÁRIOS';
         colunas = ['Nome', 'Cargo'];
+        finishList = dados[0]['finishList'];
       });
     } catch (e) {
       print('Erro ao buscar dados: $e');
     } finally {
       setState(() {
-        isLoading = false; // Finaliza o estado de carregamento
+        isLoading = false; 
       });
     }
   }
@@ -235,7 +286,7 @@ class _MainScreenState extends State<MainScreen> {
       setState(() {
         currentPage += 1;
       });
-      _fetchCurrentData(); // Busca dados da próxima página
+      _fetchCurrentData(); 
     }
   }
 
@@ -244,7 +295,7 @@ class _MainScreenState extends State<MainScreen> {
       setState(() {
         currentPage -= 1;
       });
-      _fetchCurrentData(); // Busca dados da página anterior
+      _fetchCurrentData();
     }
   }
 
@@ -265,18 +316,13 @@ class _MainScreenState extends State<MainScreen> {
       appBar: CustomHeader(onTap: _onItemTapped),
       drawer: CustomDrawer(onTap: _onItemTapped),
       body: _screens[_currentIndex],
-      // body: isLoading
-      //   ? Center(
-      //       child: CircularProgressIndicator(), // Mostra o indicador de carregamento
-      //     )
-      //   : _screens[_currentIndex],
     );
   }
 
   void _onItemTapped(int index, [bool? isFormulario]) {
     setState(() {
       _currentIndex = index;
-      currentPage = 0; // Resetar para a primeira página ao mudar de tela
+      currentPage = 0; 
       this.isFormulario = isFormulario != null ? true : false;
       searchString = '';
     });
@@ -296,14 +342,11 @@ class _MainScreenState extends State<MainScreen> {
     }
 
     print("Tela alterada para o índice: $index");
-
-    if (Scaffold.of(context).isDrawerOpen) {
-      // Navigator.pop(context);
-    }
   }
 
   // Função para buscar dados da empresa
-  Future<List<dynamic>> buscarDadosEmpresa(int page, [String search = '']) async {
+  Future<List<dynamic>> buscarDadosEmpresa(int page,
+      [String search = '']) async {
     try {
       if (search.isNotEmpty) {
         setState(() {
@@ -311,8 +354,12 @@ class _MainScreenState extends State<MainScreen> {
           searchString = search;
         });
       }
-      final queryParams = <String, String>{'nome': searchString, 'page': page.toString()};
-      final uri = Uri.parse('$URL/auth/Empresa/search').replace(queryParameters: queryParams);
+      final queryParams = <String, String>{
+        'nome': searchString,
+        'page': page.toString()
+      };
+      final uri = Uri.parse('$URL/auth/Empresa/search')
+          .replace(queryParameters: queryParams);
 
       final response = await http.get(uri, headers: headers);
 
@@ -321,14 +368,13 @@ class _MainScreenState extends State<MainScreen> {
 
         return resultado.map((item) {
           return {
-            'id': item['id'], // Inclui o ID
-            'Nome': item['nomeFantasia'] ?? '', // Nome
-            'Porte': item['porteEmpresas'] ?? '', // Porte
-            'Ramo': item['ramo'] ?? '',          // Ramo
-            // 'finishList': item['finishList'] ?? false,          // finishList
+            'id': item['id'], 
+            'Nome': item['nomeFantasia'] ?? '', 
+            'Porte': item['porteEmpresas'] ?? '', 
+            'Ramo': item['ramo'] ?? '', 
+            'finishList': item['finishList'], 
           };
         }).toList();
-    
       } else {
         print('Erro ao buscar dados da empresa: ${response.statusCode}');
         return [];
@@ -340,10 +386,15 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   // Função para buscar dados de perguntas
-  Future<List<dynamic>> buscarDadosPerguntas(int page, [String search = '']) async {
+  Future<List<dynamic>> buscarDadosPerguntas(int page,
+      [String search = '']) async {
     try {
-      final queryParams = <String, String>{'nome': searchString, 'page': page.toString()};
-      final uri = Uri.parse('$URL/auth/Perguntas/search').replace(queryParameters: queryParams);
+      final queryParams = <String, String>{
+        'nome': searchString,
+        'page': page.toString()
+      };
+      final uri = Uri.parse('$URL/auth/Perguntas/search')
+          .replace(queryParameters: queryParams);
 
       final response = await http.get(uri, headers: headers);
 
@@ -352,14 +403,13 @@ class _MainScreenState extends State<MainScreen> {
 
         return resultado.map((item) {
           return {
-            'id': item['id'], // Inclui o ID
-            'Pergunta': item['descricao'] ?? '', // Nome
-            'Eixo': item['eixo'] ?? '', // Porte
-            'isSelected': false, // Porte
-            // 'finishList': item['finishList'] ?? false, // finishList
+            'id': item['id'],
+            'Pergunta': item['descricao'] ?? '', 
+            'Eixo': item['eixo'] ?? '', 
+            'isSelected': false,
+            'finishList': item['finishList'], 
           };
         }).toList();
-
       } else {
         print('Erro ao buscar dados de perguntas: ${response.statusCode}');
         return [];
@@ -371,7 +421,8 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   // Função para buscar dados dos funcionários
-  Future<List<dynamic>> buscarDadosFuncionarios(int page, [String search = '']) async {
+  Future<List<dynamic>> buscarDadosFuncionarios(int page,
+      [String search = '']) async {
     try {
       if (search.isNotEmpty) {
         setState(() {
@@ -379,8 +430,12 @@ class _MainScreenState extends State<MainScreen> {
           searchString = search;
         });
       }
-      final queryParams = <String, String>{'nome': searchString, 'page': page.toString()};
-      final uri = Uri.parse('$URL/auth/Funcionario/search').replace(queryParameters: queryParams);
+      final queryParams = <String, String>{
+        'nome': searchString,
+        'page': page.toString()
+      };
+      final uri = Uri.parse('$URL/auth/Funcionario/search')
+          .replace(queryParameters: queryParams);
 
       final response = await http.get(uri, headers: headers);
 
@@ -389,10 +444,10 @@ class _MainScreenState extends State<MainScreen> {
 
         return resultado.map((item) {
           return {
-            'id': item['id'], // Inclui o ID
-            'Nome': item['nome'] ?? '', // Nome
-            'Cargo': item['cargo']['descricao'] ?? '', // Porte
-            // 'finishList': item['finishList'] ?? false, // finishList
+            'id': item['id'], 
+            'Nome': item['nome'] ?? '', 
+            'Cargo': item['cargo']['descricao'] ?? '', 
+            'finishList': item['finishList'], 
           };
         }).toList();
       } else {
@@ -408,13 +463,12 @@ class _MainScreenState extends State<MainScreen> {
   //Para a exclusão
   Future<void> _deleteEmpresa(int id) async {
     final uri = Uri.parse('$URL/auth/Empresa/Delete/$id');
-    
+
     try {
       final response = await http.delete(uri, headers: headers);
 
       if (response.statusCode == 200) {
         setState(() {
-          // Remove the item from the list after deletion
           dados.removeWhere((item) => item['id'] == id);
         });
 
@@ -424,9 +478,10 @@ class _MainScreenState extends State<MainScreen> {
               'Empresa excluída com sucesso!',
               style: TextStyle(color: Colors.white),
             ),
-            backgroundColor: Colors.green, // Cor de fundo do Snackbar para sucesso
-            behavior: SnackBarBehavior.floating, // Exibe o Snackbar flutuante
-            duration: Duration(seconds: 3), // Duração do Snackbar
+            backgroundColor:
+                Colors.green, 
+            behavior: SnackBarBehavior.floating, 
+            duration: Duration(seconds: 3), 
           ),
         );
       } else {
@@ -446,11 +501,14 @@ class _MainScreenState extends State<MainScreen> {
               errorMessage,
               style: TextStyle(color: Colors.white),
             ),
-            backgroundColor: Colors.red, // Cor de fundo do Snackbar para erros
-            behavior: SnackBarBehavior.floating, // Para exibir o Snackbar flutuante
-            duration: Duration(seconds: 4), // Tempo que o Snackbar permanece visível
+            backgroundColor: Colors.red, 
+            behavior:
+                SnackBarBehavior.floating, 
+            duration:
+                Duration(seconds: 4), 
           ),
-        );      }
+        );
+      }
     } catch (e) {
       print("Erro de conexão: $e");
       _showErrorSnackbar("Erro de conexão ao excluir a empresa.");
@@ -459,13 +517,12 @@ class _MainScreenState extends State<MainScreen> {
 
   Future<void> _deletePergunta(int id) async {
     final uri = Uri.parse('$URL/auth/Perguntas/Delete/$id');
-    
+
     try {
       final response = await http.delete(uri, headers: headers);
 
       if (response.statusCode == 200 || response.statusCode == 204) {
         setState(() {
-          // Remove the item from the list after deletion
           dados.removeWhere((item) => item['id'] == id);
         });
 
@@ -475,12 +532,12 @@ class _MainScreenState extends State<MainScreen> {
               'Pergunta excluída com sucesso!',
               style: TextStyle(color: Colors.white),
             ),
-            backgroundColor: Colors.green, // Cor de fundo do Snackbar para sucesso
-            behavior: SnackBarBehavior.floating, // Exibe o Snackbar flutuante
-            duration: Duration(seconds: 3), // Duração do Snackbar
+            backgroundColor:
+                Colors.green, 
+            behavior: SnackBarBehavior.floating, 
+            duration: Duration(seconds: 3), 
           ),
         );
-
       } else {
         print("Erro ao excluir a pergunta: ${response.statusCode}");
 
@@ -498,27 +555,28 @@ class _MainScreenState extends State<MainScreen> {
               errorMessage,
               style: TextStyle(color: Colors.white),
             ),
-            backgroundColor: Colors.red, // Cor de fundo do Snackbar para erros
-            behavior: SnackBarBehavior.floating, // Para exibir o Snackbar flutuante
-            duration: Duration(seconds: 4), // Tempo que o Snackbar permanece visível
+            backgroundColor: Colors.red, 
+            behavior:
+                SnackBarBehavior.floating, 
+            duration:
+                Duration(seconds: 4), 
           ),
         );
       }
     } catch (e) {
       print("Erro de conexão: $e");
-      _showErrorSnackbar("Erro ao deletar, a pergunta está sendo utilizadas em avaliações.");
+      _showErrorSnackbar(
+          "Erro ao deletar, a pergunta está sendo utilizadas em avaliações.");
     }
   }
 
   Future<void> _deleteFuncionario(int id) async {
     final uri = Uri.parse('$URL/auth/Funcionario/Delete/$id');
-    
+
     try {
       final response = await http.delete(uri, headers: headers);
-
       if (response.statusCode == 200) {
         setState(() {
-          // Remove the item from the list after deletion
           dados.removeWhere((item) => item['id'] == id);
         });
         ScaffoldMessenger.of(context).showSnackBar(
@@ -527,9 +585,10 @@ class _MainScreenState extends State<MainScreen> {
               'Funcionário excluído com sucesso!',
               style: TextStyle(color: Colors.white),
             ),
-            backgroundColor: Colors.green, // Cor de fundo do Snackbar para sucesso
-            behavior: SnackBarBehavior.floating, // Exibe o Snackbar flutuante
-            duration: Duration(seconds: 3), // Duração do Snackbar
+            backgroundColor:
+                Colors.green, 
+            behavior: SnackBarBehavior.floating, 
+            duration: Duration(seconds: 3), 
           ),
         );
       } else {
@@ -549,9 +608,11 @@ class _MainScreenState extends State<MainScreen> {
               errorMessage,
               style: TextStyle(color: Colors.white),
             ),
-            backgroundColor: Colors.red, // Cor de fundo do Snackbar para erros
-            behavior: SnackBarBehavior.floating, // Para exibir o Snackbar flutuante
-            duration: Duration(seconds: 4), // Tempo que o Snackbar permanece visível
+            backgroundColor: Colors.red, 
+            behavior:
+                SnackBarBehavior.floating, 
+            duration:
+                Duration(seconds: 4), 
           ),
         );
       }
@@ -569,14 +630,14 @@ class _MainScreenState extends State<MainScreen> {
 
   Future<void> _fetchFuncionario(int id) async {
     final uri = Uri.parse('$URL/auth/Funcionario/Get/$id');
-    
+
     try {
       final response = await http.get(uri, headers: headers);
 
       if (response.statusCode == 200) {
-        final dynamic decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
+        final dynamic decodedResponse =
+            jsonDecode(utf8.decode(response.bodyBytes));
 
-        
         setState(() {
           initialData = decodedResponse;
           _currentIndex = 5;
@@ -591,7 +652,8 @@ class _MainScreenState extends State<MainScreen> {
     }
   }
 
-  Future<void> _editFuncionario(int id, Map<String, dynamic> updatedData) async {
+  Future<void> _editFuncionario(
+      int id, Map<String, dynamic> updatedData) async {
     final uri = Uri.parse('$URL/auth/Funcionario/Edit/$id');
     try {
       final response = await http.put(
@@ -607,9 +669,10 @@ class _MainScreenState extends State<MainScreen> {
               'Funcionário atualizado com sucesso!',
               style: TextStyle(color: Colors.white),
             ),
-            backgroundColor: Colors.green, // Cor de fundo do Snackbar para sucesso
-            behavior: SnackBarBehavior.floating, // Exibe o Snackbar flutuante
-            duration: Duration(seconds: 3), // Duração do Snackbar
+            backgroundColor:
+                Colors.green, 
+            behavior: SnackBarBehavior.floating, 
+            duration: Duration(seconds: 3), 
           ),
         );
 
@@ -634,9 +697,11 @@ class _MainScreenState extends State<MainScreen> {
               errorMessage,
               style: TextStyle(color: Colors.white),
             ),
-            backgroundColor: Colors.red, // Cor de fundo do Snackbar para erros
-            behavior: SnackBarBehavior.floating, // Para exibir o Snackbar flutuante
-            duration: Duration(seconds: 4), // Tempo que o Snackbar permanece visível
+            backgroundColor: Colors.red, 
+            behavior:
+                SnackBarBehavior.floating, 
+            duration:
+                Duration(seconds: 4), 
           ),
         );
       }
@@ -663,15 +728,16 @@ class _MainScreenState extends State<MainScreen> {
               'Funcionário adicionado com sucesso!',
               style: TextStyle(color: Colors.white),
             ),
-            backgroundColor: Colors.green, // Cor de fundo do Snackbar para sucesso
-            behavior: SnackBarBehavior.floating, // Exibe o Snackbar flutuante
-            duration: Duration(seconds: 3), // Duração do Snackbar
+            backgroundColor:
+                Colors.green, 
+            behavior: SnackBarBehavior.floating,
+            duration: Duration(seconds: 3), 
           ),
         );
 
         _fetchDataFuncionarios();
         setState(() {
-          _currentIndex = 2; // Switches to a different tab or state if needed
+          _currentIndex = 2;
         });
       } else {
         String errorMessage;
@@ -689,21 +755,22 @@ class _MainScreenState extends State<MainScreen> {
               errorMessage,
               style: TextStyle(color: Colors.white),
             ),
-            backgroundColor: Colors.red, // Cor de fundo do Snackbar para erros
-            behavior: SnackBarBehavior.floating, // Para exibir o Snackbar flutuante
-            duration: Duration(seconds: 4), // Tempo que o Snackbar permanece visível
+            backgroundColor: Colors.red, 
+            behavior:
+                SnackBarBehavior.floating, 
+            duration:
+                Duration(seconds: 4), 
           ),
         );
-
       }
     } catch (e) {
       print("Erro de conexão: $e");
 
       String errorMessage;
       if (e is FormatException) {
-        errorMessage = e.message; 
+        errorMessage = e.message;
       } else {
-        errorMessage = e.toString(); 
+        errorMessage = e.toString();
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -712,25 +779,24 @@ class _MainScreenState extends State<MainScreen> {
             errorMessage,
             style: TextStyle(color: Colors.white),
           ),
-          backgroundColor: Colors.red, 
+          backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
-          duration: Duration(seconds: 4), 
+          duration: Duration(seconds: 4),
         ),
       );
-
     }
   }
 
-
   Future<void> _fetchEmpresa(int id) async {
     final uri = Uri.parse('$URL/auth/Empresa/$id');
-    
+
     try {
       final response = await http.get(uri, headers: headers);
 
       if (response.statusCode == 200) {
-        final dynamic decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
-        
+        final dynamic decodedResponse =
+            jsonDecode(utf8.decode(response.bodyBytes));
+
         setState(() {
           initialData = decodedResponse;
           _currentIndex = 3;
@@ -761,9 +827,10 @@ class _MainScreenState extends State<MainScreen> {
               'Empresa atualizada com sucesso!',
               style: TextStyle(color: Colors.white),
             ),
-            backgroundColor: Colors.green, // Cor de fundo do Snackbar para sucesso
-            behavior: SnackBarBehavior.floating, // Exibe o Snackbar flutuante
-            duration: Duration(seconds: 3), // Duração do Snackbar
+            backgroundColor:
+                Colors.green, 
+            behavior: SnackBarBehavior.floating,
+            duration: Duration(seconds: 3), 
           ),
         );
 
@@ -788,9 +855,11 @@ class _MainScreenState extends State<MainScreen> {
               errorMessage,
               style: TextStyle(color: Colors.white),
             ),
-            backgroundColor: Colors.red, // Cor de fundo do Snackbar para erros
-            behavior: SnackBarBehavior.floating, // Para exibir o Snackbar flutuante
-            duration: Duration(seconds: 4), // Tempo que o Snackbar permanece visível
+            backgroundColor: Colors.red, 
+            behavior:
+                SnackBarBehavior.floating, 
+            duration:
+                Duration(seconds: 4), 
           ),
         );
       }
@@ -816,15 +885,16 @@ class _MainScreenState extends State<MainScreen> {
               'Empresa adicionada com sucesso!',
               style: TextStyle(color: Colors.white),
             ),
-            backgroundColor: Colors.green, // Cor de fundo do Snackbar para sucesso
-            behavior: SnackBarBehavior.floating, // Exibe o Snackbar flutuante
-            duration: Duration(seconds: 3), // Duração do Snackbar
+            backgroundColor:
+                Colors.green,
+            behavior: SnackBarBehavior.floating, 
+            duration: Duration(seconds: 3), 
           ),
         );
 
         _fetchDataEmpresa();
         setState(() {
-          _currentIndex = 0; // Switches to a different tab or state if needed
+          _currentIndex = 0; 
         });
       } else {
         String errorMessage;
@@ -842,14 +912,13 @@ class _MainScreenState extends State<MainScreen> {
               errorMessage,
               style: TextStyle(color: Colors.white),
             ),
-            backgroundColor: Colors.red, // Cor de fundo do Snackbar para erros
-            behavior: SnackBarBehavior.floating, // Para exibir o Snackbar flutuante
-            duration: Duration(seconds: 4), // Tempo que o Snackbar permanece visível
+            backgroundColor: Colors.red, 
+            behavior:
+                SnackBarBehavior.floating, 
+            duration:
+                Duration(seconds: 4), 
           ),
         );
-        // setState(() {
-        //   _errorMessage = error['message'] ?? 'Erro desconhecido';
-        // });
       }
     } catch (e) {
       print("Erro de conexão: $e");
@@ -858,9 +927,9 @@ class _MainScreenState extends State<MainScreen> {
 
       // Verifica se o erro é do tipo FormatException
       if (e is FormatException) {
-        errorMessage = e.message; // Captura a mensagem do FormatException
+        errorMessage = e.message; 
       } else {
-        errorMessage = e.toString(); // Converte o erro genérico para string
+        errorMessage = e.toString(); 
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -869,25 +938,27 @@ class _MainScreenState extends State<MainScreen> {
             errorMessage,
             style: TextStyle(color: Colors.white),
           ),
-          backgroundColor: Colors.red, // Cor de fundo do Snackbar para erros
-          behavior: SnackBarBehavior.floating, // Para exibir o Snackbar flutuante
-          duration: Duration(seconds: 4), // Tempo que o Snackbar permanece visível
+          backgroundColor: Colors.red, 
+          behavior:
+              SnackBarBehavior.floating, 
+          duration:
+              Duration(seconds: 4), 
         ),
       );
     }
   }
 
-
-  // Perguntas 
+  // Perguntas
   Future<void> _fetchPergunta(int id) async {
     final uri = Uri.parse('$URL/auth/Perguntas/$id');
-    
+
     try {
       final response = await http.get(uri, headers: headers);
 
       if (response.statusCode == 200) {
-        final dynamic decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
-        
+        final dynamic decodedResponse =
+            jsonDecode(utf8.decode(response.bodyBytes));
+
         setState(() {
           initialData = decodedResponse;
           _currentIndex = 4;
@@ -920,9 +991,10 @@ class _MainScreenState extends State<MainScreen> {
               'Pergunta atualizada com sucesso!',
               style: TextStyle(color: Colors.white),
             ),
-            backgroundColor: Colors.green, // Cor de fundo do Snackbar para sucesso
-            behavior: SnackBarBehavior.floating, // Exibe o Snackbar flutuante
-            duration: Duration(seconds: 3), // Duração do Snackbar
+            backgroundColor:
+                Colors.green, 
+            behavior: SnackBarBehavior.floating, 
+            duration: Duration(seconds: 3), 
           ),
         );
 
@@ -947,9 +1019,11 @@ class _MainScreenState extends State<MainScreen> {
               errorMessage,
               style: TextStyle(color: Colors.white),
             ),
-            backgroundColor: Colors.red, // Cor de fundo do Snackbar para erros
-            behavior: SnackBarBehavior.floating, // Para exibir o Snackbar flutuante
-            duration: Duration(seconds: 4), // Tempo que o Snackbar permanece visível
+            backgroundColor: Colors.red,
+            behavior:
+                SnackBarBehavior.floating, 
+            duration:
+                Duration(seconds: 4), 
           ),
         );
       }
@@ -976,15 +1050,16 @@ class _MainScreenState extends State<MainScreen> {
               'Pergunta adicionada com sucesso!',
               style: TextStyle(color: Colors.white),
             ),
-            backgroundColor: Colors.green, // Cor de fundo do Snackbar para sucesso
-            behavior: SnackBarBehavior.floating, // Exibe o Snackbar flutuante
-            duration: Duration(seconds: 3), // Duração do Snackbar
+            backgroundColor:
+                Colors.green, 
+            behavior: SnackBarBehavior.floating, 
+            duration: Duration(seconds: 3), 
           ),
         );
 
         _fetchDataPerguntas();
         setState(() {
-          _currentIndex = 1; // Switches to a different tab or state if needed
+          _currentIndex = 1; 
         });
       } else {
         String errorMessage;
@@ -1002,21 +1077,22 @@ class _MainScreenState extends State<MainScreen> {
               errorMessage,
               style: TextStyle(color: Colors.white),
             ),
-            backgroundColor: Colors.red, // Cor de fundo do Snackbar para erros
-            behavior: SnackBarBehavior.floating, // Para exibir o Snackbar flutuante
-            duration: Duration(seconds: 4), // Tempo que o Snackbar permanece visível
+            backgroundColor: Colors.red, 
+            behavior:
+                SnackBarBehavior.floating, 
+            duration:
+                Duration(seconds: 4), 
           ),
         );
-
       }
     } catch (e) {
       print("Erro de conexão: $e");
 
       String errorMessage;
       if (e is FormatException) {
-        errorMessage = e.message; 
+        errorMessage = e.message;
       } else {
-        errorMessage = e.toString(); 
+        errorMessage = e.toString();
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1025,51 +1101,44 @@ class _MainScreenState extends State<MainScreen> {
             errorMessage,
             style: TextStyle(color: Colors.white),
           ),
-          backgroundColor: Colors.red, 
-          behavior: SnackBarBehavior.floating, 
-          duration: Duration(seconds: 4), 
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          duration: Duration(seconds: 4),
         ),
       );
     }
   }
 
-
   Future<void> _createFormulario(List<int> selectedIds) async {
-      final uri = Uri.parse('$URL/checklist/Add?eixo=Ambiental');
-      final companyData = {
-        'descricao': 'Teste',
-        'selectedPerguntasIds': selectedIds
-      };
+    final uri = Uri.parse('$URL/checklist/Add?eixo=Ambiental');
+    final companyData = {
+      'descricao': 'Teste',
+      'selectedPerguntasIds': selectedIds
+    };
 
-      try {
-        final response = await http.post(
-          uri,
-          headers: headers,
-          body: jsonEncode(companyData),
-        );
+    try {
+      final response = await http.post(
+        uri,
+        headers: headers,
+        body: jsonEncode(companyData),
+      );
 
-        if (response.statusCode == 200) {
-          print("Formulário criado com sucesso");
+      if (response.statusCode == 200) {
+        print("Formulário criado com sucesso");
 
-          setState(() {
-            selectedIdsForm = selectedIds;
-            _currentIndex = 8;
-          });
+        setState(() {
+          selectedIdsForm = selectedIds;
+          _currentIndex = 8;
+        });
 
-          print("selectedIds: $selectedIds");
-          print("selectedIdsForm: $selectedIdsForm");
-
-        } else {
-          print("Erro ao adicionar formulário");
-        }
-      } catch (e) {
-        print("Erro de conexão: $e");
+        print("selectedIds: $selectedIds");
+        print("selectedIdsForm: $selectedIdsForm");
+      } else {
+        print("Erro ao adicionar formulário");
       }
-
-    // } else {
-    //   print("formulari ja existe");
-    //   // message: 'A empresa selecionada já p
-    // }
+    } catch (e) {
+      print("Erro de conexão: $e");
+    }
   }
 
   Future<bool> verifyActiveForm() async {
@@ -1081,18 +1150,20 @@ class _MainScreenState extends State<MainScreen> {
         headers: headers,
       );
 
-      return response.statusCode == 200 ? jsonDecode(response.body) : throw Exception("Erro ao verificar formulário ativo.");
+      return response.statusCode == 200
+          ? jsonDecode(response.body)
+          : throw Exception("Erro ao verificar formulário ativo.");
     } catch (e) {
       print("Erro de conexão: $e");
       throw Exception("Erro de conexão ao verificar formulário ativo.");
     }
   }
 
-
   // Para a avaliação
   final checkListId = 2;
   Future<void> _fetchEmpresaPerguntas() async {
-    final uri = Uri.parse('$URL/auth/questionario/$checkListId?empresaId=$companySelected');
+    final uri = Uri.parse(
+        '$URL/auth/questionario/$checkListId?empresaId=$companySelected');
     final bool hasActiveForm = await verifyActiveForm();
     final props = {
       'companySelected': companySelected,
@@ -1100,33 +1171,35 @@ class _MainScreenState extends State<MainScreen> {
     };
     const questionNumbers = 10;
 
-
     if (!hasActiveForm) {
       try {
         final response = await http.get(uri, headers: headers);
-          setState(() {
-            governamental = [];
-            ambiental = [];
-            social = [];
-          });
-
+        setState(() {
+          governamental = [];
+          ambiental = [];
+          social = [];
+        });
 
         if (response.statusCode == 200) {
-          final data = jsonDecode(utf8.decode(response.bodyBytes)); // Decode JSON response
+          final data = jsonDecode(
+              utf8.decode(response.bodyBytes)); 
           print("Dados do formulário: $data");
 
           if (!(props['isNew'] as bool)) {
             data['formularioRequests'].forEach((item) {
               if (item['eixo'] == 'Governamental') {
-                if (governamental.length < questionNumbers) { // tem que ver essa parada aqui depois\  
+                if (governamental.length < questionNumbers) {
+                  // tem que ver essa parada aqui depois
                   governamental.add(item);
                 }
               } else if (item['eixo'] == 'Ambiental') {
-                if (ambiental.length < questionNumbers) { // tem que ver essa parada aqui depois\  
+                if (ambiental.length < questionNumbers) {
+                  // tem que ver essa parada aqui depois
                   ambiental.add(item);
                 }
               } else if (item['eixo'] == 'Social') {
-                if (social.length < questionNumbers) { // tem que ver essa parada aqui depois\  
+                if (social.length < questionNumbers) {
+                  // tem que ver essa parada aqui depois
                   social.add(item);
                 }
               }
@@ -1147,18 +1220,14 @@ class _MainScreenState extends State<MainScreen> {
           print("Perguntas Governamentais: $governamental");
           print("Perguntas Ambientais: $ambiental");
           print("Perguntas Sociais: $social");
-          // final dynamic decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
-          
+
           setState(() {
             _currentIndex = 9;
           });
-        } 
-        else {
+        } else {
           print("Erro ao buscar os dados da empresa: ${response.statusCode}");
           _showErrorSnackbar("Erro ao buscar os dados da empresa.");
         }
-
-
       } catch (e) {
         print("Erro de conexão: $e");
         _showErrorSnackbar("Erro de conexão ao buscar os dados da empresa.");
@@ -1168,116 +1237,109 @@ class _MainScreenState extends State<MainScreen> {
     }
   }
 
+  Future<void> processarRespostas(List<Map<String, dynamic>> answers) async {
+    final uri = Uri.parse(
+        '$URL/auth/processarRespostas?empresa_id=$companySelected&is_complete=true');
 
-    Future<void> processarRespostas(List<Map<String, dynamic>> answers) async {
-      final uri = Uri.parse('$URL/auth/processarRespostas?empresa_id=$companySelected&is_complete=true');
+    try {
+      final response = await http.post(
+        uri,
+        headers: headers,
+        body: jsonEncode(answers),
+      );
 
-      try {
-        final response = await http.post(
-          uri,
-          headers: headers,
-          body: jsonEncode(answers),
-        );
+      if (response.statusCode == 200) {
+        print('Respostas enviadas com sucesso!');
 
-        if (response.statusCode == 200) {
-          // Sucesso
-          print('Respostas enviadas com sucesso!');
+        // Processar as respotas para a pagina de resultados
+        final data =
+            jsonDecode(utf8.decode(response.bodyBytes)); 
 
-          // Processar as respotas para a pagina de resultados
-          final data = jsonDecode(utf8.decode(response.bodyBytes)); // Decode JSON response
+        List<Map<String, dynamic>> resultado =
+            processarDadosResultadoAvaliacao(data['respostas'], {
+          "pontuacaoAmbiental": data['pontuacaoAmbiental'],
+          "pontuacaoGovernamental": data['pontuacaoGovernamental'],
+          "pontuacaoSocial": data['pontuacaoSocial']
+        });
 
-          List<Map<String, dynamic>> resultado = processarDadosResultadoAvaliacao(data['respostas'], {"pontuacaoAmbiental": data['pontuacaoAmbiental'], "pontuacaoGovernamental": data['pontuacaoGovernamental'], "pontuacaoSocial": data['pontuacaoSocial']});
-
-          setState(() {
-            dadosResultadoAvaliacao = resultado;
-            _currentIndex = 7;
-          });
-          
-        } else {
-          // Falha
-          print('Erro ao enviar respostas: ${response.statusCode}');
-        }
-      } catch (e) {
-        print('Erro de requisição: $e');
+        setState(() {
+          dadosResultadoAvaliacao = resultado;
+          _currentIndex = 7;
+        });
+      } else {
+        print('Erro ao enviar respostas: ${response.statusCode}');
       }
+    } catch (e) {
+      print('Erro de requisição: $e');
     }
+  }
 
-    processarDadosResultadoAvaliacao(dynamic answers, dynamic percentages) {
+  processarDadosResultadoAvaliacao(dynamic answers, dynamic percentages) {
+    // Filtrando dados para cada eixo específico
+    List<dynamic> socialData = answers
+        .where((answer) => answer['pergunta']['eixo'] == 'Social')
+        .toList();
 
-      // Filtrando dados para cada eixo específico
-      List<dynamic> socialData = answers
-          .where((answer) => answer['pergunta']['eixo'] == 'Social')
-          .toList();
+    List<dynamic> governamentalData = answers
+        .where((answer) => answer['pergunta']['eixo'] == 'Governamental')
+        .toList();
 
-      List<dynamic> governamentalData = answers
-          .where((answer) => answer['pergunta']['eixo'] == 'Governamental')
-          .toList();
+    List<dynamic> ambientalData = answers
+        .where((answer) => answer['pergunta']['eixo'] == 'Ambiental')
+        .toList();
 
-      List<dynamic> ambientalData = answers
-          .where((answer) => answer['pergunta']['eixo'] == 'Ambiental')
-          .toList();  
+    // Transformando os dados filtrados em estrutura similar a _screenData
+    return [
+      {
+        'title': 'Governamental',
+        'color': Colors.blue,
+        'questions': governamentalData.map((answer) {
+          return {
+            "question": answer['pergunta']['descricao'],
+            "status": formatStatus(answer['resposta'])
+          };
+        }).toList(),
+        'percentage': percentages['pontuacaoGovernamental'],
+      },
+      {
+        'title': 'Ambiental',
+        'color': Colors.green,
+        'questions': ambientalData.map((answer) {
+          return {
+            "question": answer['pergunta']['descricao'],
+            "status": formatStatus(answer['resposta'])
+          };
+        }).toList(),
+        'percentage': percentages['pontuacaoAmbiental'],
+      },
+      {
+        'title': 'Social',
+        'color': Colors.orange,
+        'questions': socialData.map((answer) {
+          return {
+            "question": answer['pergunta']['descricao'],
+            "status": formatStatus(answer['resposta'])
+          };
+        }).toList(),
+        'percentage': percentages['pontuacaoSocial'],
+      },
+    ];
+  }
 
-      // Transformando os dados filtrados em estrutura similar a _screenData
-      return [
-        {
-          'title': 'Governamental',
-          'color': Colors.blue,
-          'questions': governamentalData.map((answer) {
-            return {
-              "question": answer['pergunta']['descricao'],
-              "status": formatStatus(answer['resposta'])
-            };
-          }).toList(),
-          'percentage': percentages['pontuacaoGovernamental'],
-        },
-        {
-          'title': 'Ambiental',
-          'color': Colors.green,
-          'questions': ambientalData.map((answer) {
-            return {
-              "question": answer['pergunta']['descricao'],
-              "status": formatStatus(answer['resposta'])
-            };
-          }).toList(),
-          'percentage': percentages['pontuacaoAmbiental'],
-        },
-        {
-          'title': 'Social',
-          'color': Colors.orange,
-          'questions': socialData.map((answer) {
-            return {
-              "question": answer['pergunta']['descricao'],
-              "status": formatStatus(answer['resposta'])
-            };
-          }).toList(),
-          'percentage': percentages['pontuacaoSocial'],
-        },
-      ];
+  String formatStatus(String status) {
+    switch (status) {
+      case 'Conforme':
+        return 'Conforme';
+      case 'NaoConforme':
+        return 'Não conforme';
+      case 'NaoSeAdequa':
+        return 'Não se aplica';
+      default:
+        return status;
     }
+  }
 
-    String formatStatus(String status) {
-      switch (status) {
-        case 'Conforme':
-          return 'Conforme';
-        case 'NaoConforme':
-          return 'Não conforme';
-        case 'NaoSeAdequa':
-          return 'Não se aplica';
-        default:
-          return status;
-      }
-    }
-
-
-// Future<void> _launchPDF(int empresaId) async {
-//     final url = Uri.parse('http://localhost:8080/pdf/getPdf/$empresaId');
-//     if (await canLaunch(url.toString())) {
-//       await launch(url.toString());
-//     } else {
-//       throw 'Não foi possível abrir o PDF';
-//     }
-//   }
-    Future<void> exportPDF(String nomeFantasia) async {
+  Future<void> exportPDF(String nomeFantasia) async {
     // Cria o Uri diretamente
     final uri = Uri.parse('$URL/pdf/getPdf/$companySelected');
 
@@ -1287,35 +1349,4 @@ class _MainScreenState extends State<MainScreen> {
       throw 'Não foi possível abrir o PDF';
     }
   }
-
-      /*try {
-        // Realizando a requisição para baixar o PDF
-        final response = await http.get(uri, headers: headers);
-
-
-        // if (response.statusCode == 200) {
-        //   // Obtendo o diretório temporário para salvar o arquivo
-        //   final directory = await getTemporaryDirectory();
-        //   final path = '${directory.path}/$nomeFantasia.pdf';
-
-        //   // Salvando o arquivo no diretório temporário
-        //   final file = File(path);
-        //   await file.writeAsBytes(response.bodyBytes);
-
-        //   // Abrindo o PDF
-        //   await OpenFile.open(path);
-        // } else {
-        //   throw Exception("Erro ao baixar PDF: ${response.statusCode}");
-        // }
-      } catch (error) {
-        debugPrint("Erro ao baixar ou abrir o PDF: $error");
-      }*/
-    // }
-
-
-  static const String URL = 'http://192.168.1.175:8080';
-  Map<String, String> headers = {
-    'Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyb290IiwiY2FyZ28iOiJBZG1pbiIsImV4cCI6MTczMjIyMjY1OH0.Iek9hTiwLhlw0J8Bljy8gYXIGfXhQTo3SioFPToUMHI',
-    'Content-Type': 'application/json; charset=UTF-8',
-  };
 }
