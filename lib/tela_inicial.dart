@@ -81,7 +81,7 @@ class _TelaInicialState extends State<TelaInicial>
                     ),
                     const SizedBox(height: 12),
                     const Text(
-                      'Conheça algumas das principais opções que você pode realizar...',
+                      'Conheça algumas das principais ações que você pode realizar...',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 16,

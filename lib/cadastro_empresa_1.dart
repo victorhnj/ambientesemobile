@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'header.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
+import 'package:flutter/services.dart';
 
 void main() => runApp(MyApp());
 
@@ -235,8 +236,7 @@ class _CadastroFormState extends State<CadastroForm> {
           controller: _inscricaoSocialController,
           decoration: InputDecoration(
             labelText: 'Inscrição Social',
-            border:
-                OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
           ),
           validator: (value) {
             if (value == null || value.isEmpty) {
@@ -244,6 +244,11 @@ class _CadastroFormState extends State<CadastroForm> {
             }
             return null;
           },
+          keyboardType: TextInputType.number, // Abre o teclado numérico
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly, // Permite apenas números
+            LengthLimitingTextInputFormatter(20), // Limita a 20 caracteres
+          ],
         ),
         SizedBox(height: height * 0.02),
         TextFormField(
@@ -495,6 +500,7 @@ class _CadastroFormState extends State<CadastroForm> {
           },
         ),
         SizedBox(height: height * 0.02),
+
         TextFormField(
           controller: _numeroController,
           keyboardType: TextInputType.number,
@@ -511,7 +517,13 @@ class _CadastroFormState extends State<CadastroForm> {
             }
             return null;
           },
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+          ],
+
         ),
+
+        
         SizedBox(height: height * 0.195),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,

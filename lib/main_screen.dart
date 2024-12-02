@@ -1,5 +1,6 @@
 // import 'dart:ffi';
 import 'dart:io';
+import 'package:ambientese/login_screen.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:open_file/open_file.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -172,6 +173,7 @@ class _MainScreenState extends State<MainScreen> {
             companySelectedName = companyName;
             _fetchEmpresaPerguntas();
           },
+          token: token,
         ),
         AvaliacaoResposta(
           perguntasGovernamental: governamental,
@@ -181,14 +183,15 @@ class _MainScreenState extends State<MainScreen> {
         ),
         RankingScreen(
           finishList1: finishList,
-          currentPage1: currentPage,
+          token: token,
         ),
+        // LoginScreen(),
       ];
 
   @override
   void initState() {
     super.initState();
-    _fetchDataEmpresa(); 
+    // _fetchDataEmpresa(); 
     token = widget.token;
   }
 
@@ -313,7 +316,7 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomHeader(onTap: _onItemTapped),
+      appBar: token != '' ? CustomHeader(onTap: _onItemTapped) : null,
       drawer: CustomDrawer(onTap: _onItemTapped),
       body: _screens[_currentIndex],
     );

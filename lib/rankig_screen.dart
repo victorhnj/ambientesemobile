@@ -7,9 +7,9 @@ import 'package:url_launcher/url_launcher.dart';
 
 class RankingScreen extends StatefulWidget {
   final bool finishList1;
-  final int currentPage1;
+  String? token;
 
-  RankingScreen({required this.finishList1, required this.currentPage1});
+  RankingScreen({required this.finishList1, required this.token});
 
   @override
   _RankingScreenState createState() => _RankingScreenState();
@@ -28,9 +28,10 @@ class _RankingScreenState extends State<RankingScreen> {
   String? selectedRamo;
   String? selectedPorte;
   final TextEditingController searchController = TextEditingController();
+  String? token;
 
-  final String token =
-      'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyb290IiwiY2FyZ28iOiJBZG1pbiIsImV4cCI6MTczMzA4NzM5OX0.WV_PTMbPyou3ko8rM--G-u_XNMSfcTKBZO0Q_0g4kic';
+  // final String token =
+  //     'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyb290IiwiY2FyZ28iOiJBZG1pbiIsImV4cCI6MTczMzA4NzM5OX0.WV_PTMbPyou3ko8rM--G-u_XNMSfcTKBZO0Q_0g4kic';
 
   @override
   void initState() {
@@ -38,6 +39,7 @@ class _RankingScreenState extends State<RankingScreen> {
     fetchTop3RankingData().then((_) {
       fetchRankingData(_currentPage);
     });
+    token = widget.token;
   }
 
   Future<void> fetchTop3RankingData() async {

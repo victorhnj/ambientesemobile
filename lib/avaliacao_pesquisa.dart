@@ -5,8 +5,9 @@ import './avaliacao_resposta.dart';
 
 class AvaliacaoPesquisa extends StatefulWidget {
   final Function(int, String) saveCompanyData;
+  String? token;
 
-  const AvaliacaoPesquisa({super.key, required this.saveCompanyData});
+  AvaliacaoPesquisa({super.key, required this.saveCompanyData, required this.token});
 
   @override
   _AvaliacaoState createState() => _AvaliacaoState();
@@ -19,6 +20,7 @@ class _AvaliacaoState extends State<AvaliacaoPesquisa> {
   dynamic empresaSelecionada; 
   TextEditingController _textController =
       TextEditingController(); 
+  String? token;
 
   @override
   void initState() {
@@ -26,6 +28,7 @@ class _AvaliacaoState extends State<AvaliacaoPesquisa> {
     _focusNode.addListener(() {
       setState(() {}); 
     });
+    token = widget.token;
   }
 
   @override
@@ -66,11 +69,13 @@ class _AvaliacaoState extends State<AvaliacaoPesquisa> {
     }
   }
 
-  Map<String, String> headers = {
-    'Authorization':
-        'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyb290IiwiY2FyZ28iOiJBZG1pbiIsImV4cCI6MTczMzA4NzM5OX0.WV_PTMbPyou3ko8rM--G-u_XNMSfcTKBZO0Q_0g4kic',
-    'Content-Type': 'application/json; charset=UTF-8',
-  };
+  Map<String, String> get headers {
+    return {
+      'Authorization': 'Bearer $token', 
+      'Content-Type': 'application/json; charset=UTF-8',
+    };
+  }
+
 
   @override
   Widget build(BuildContext context) {

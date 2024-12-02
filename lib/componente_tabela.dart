@@ -86,12 +86,26 @@ class _TabelaGenericaState extends State<TabelaGenerica> {
             //   ],
             // ),
           ),
+
+
+
           // Área de botão e pesquisa
           Container(
             alignment: Alignment.centerLeft,
-            color: Colors.grey.shade100,
+            // color: Colors.grey.shade100,
             padding:
                 const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade100,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.5), // Cor da sombra
+                  spreadRadius: 2, // Espalhamento da sombra
+                  blurRadius: 7, // Suavização da sombra
+                  offset: Offset(0, -3), // Desloca a sombra para cima
+                ),
+              ],
+            ),
             child: Row(
               children: [
                 ElevatedButton(

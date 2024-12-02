@@ -2,12 +2,80 @@ import 'package:ambientese/main_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 class LoginScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: Colors.white,
+          labelStyle: TextStyle(color: Colors.grey[800]),
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Colors.grey[400]!),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Color(0xFF0D47A1)),
+          ),
+        ),
+        textSelectionTheme: TextSelectionThemeData(
+          cursorColor: Color(0xFF0D47A1),
+          selectionColor: Colors.blue[100],
+          selectionHandleColor: Color(0xFF0D47A1),
+        ),
+        appBarTheme: AppBarTheme(
+          backgroundColor: Color(0xFF0D47A1),
+          iconTheme: IconThemeData(color: Colors.white),
+          titleTextStyle: TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ButtonStyle(
+            backgroundColor: WidgetStateProperty.all(Colors.blue[50]),
+            foregroundColor: WidgetStateProperty.all(Color(0xFF0D47A1)),
+          ),
+        ),
+        checkboxTheme: CheckboxThemeData(
+          checkColor: WidgetStateProperty.all(Colors.white),
+          fillColor: WidgetStateProperty.resolveWith<Color>(
+            (Set<WidgetState> states) {
+              if (states.contains(WidgetState.selected)) {
+                return Color(0xFF0D47A1);
+              }
+              return Colors.white;
+            },
+          ),
+        ),
+        colorScheme: ColorScheme.light(
+          primary: Color(0xFF0D47A1), // Cor de destaque (botões e datas selecionadas)
+          onPrimary: Colors.white, // Cor do texto nos botões
+          surface: Colors.white, // Fundo do DatePicker
+          onSurface: Colors.black, // Cor do texto padrão
+        ),
+        textButtonTheme: TextButtonThemeData(
+          style: TextButton.styleFrom(
+            foregroundColor: Color(0xFF0D47A1), // Cor dos botões "CANCELAR" e "OK"
+          ),
+        ),
+      ),
+      supportedLocales: const [
+        Locale('en', 'US'),
+        Locale('pt', 'BR'),
+      ],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      locale: Locale('pt', 'BR'),
+
       home: Scaffold(
         appBar: PreferredSize(
           preferredSize: Size.fromHeight(70.0),
@@ -46,6 +114,10 @@ class LoginScreen extends StatelessWidget {
 }
 
 class LoginForm extends StatefulWidget {
+  // final Function(dynamic) login;
+
+  // const LoginForm({super.key, required this.login});
+  
   @override
   _LoginFormState createState() => _LoginFormState();
 }
@@ -89,16 +161,16 @@ class _LoginFormState extends State<LoginForm> {
         setState(() {
           token = json.decode(response.body)['token'];
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Login Bem-Sucedido!'),
-            backgroundColor: Color(0xFF2ecc71),
-            duration: Duration(seconds: 2),
-            behavior: SnackBarBehavior.floating,
-            margin: EdgeInsets.only(
-                top: 10.0, right: 10.0, left: 300.0, bottom: 830),
-          ),
-        );
+        // ScaffoldMessenger.of(context).showSnackBar(
+        //   SnackBar(
+        //     content: Text('Login Bem-Sucedido!'),
+        //     backgroundColor: Color(0xFF2ecc71),
+        //     duration: Duration(seconds: 2),
+        //     behavior: SnackBarBehavior.floating,
+        //     margin: EdgeInsets.only(
+        //         top: 10.0, right: 10.0, left: 300.0, bottom: 830),
+        //   ),
+        // );
 
         Navigator.pushReplacement(
           context,

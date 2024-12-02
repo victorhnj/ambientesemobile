@@ -179,7 +179,20 @@ class _AvaliacaoState extends State<AvaliacaoResposta>
                                   collectAnswers();
                               widget.processarRespostas!(answers);
                             } else {
-                              showDialogModal();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Ainda há perguntas a serem respondidas!',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                  backgroundColor:
+                                      Colors.red, 
+                                  behavior: SnackBarBehavior.floating, 
+                                  duration: Duration(seconds: 3), 
+                                ),
+                              );
+                              
+                              // showDialogModal();
                             }
                           },
                     style: ElevatedButton.styleFrom(
