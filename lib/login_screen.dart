@@ -2,12 +2,80 @@ import 'package:ambientese/main_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 class LoginScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: Colors.white,
+          labelStyle: TextStyle(color: Colors.grey[800]),
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Colors.grey[400]!),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Color(0xFF0D47A1)),
+          ),
+        ),
+        textSelectionTheme: TextSelectionThemeData(
+          cursorColor: Color(0xFF0D47A1),
+          selectionColor: Colors.blue[100],
+          selectionHandleColor: Color(0xFF0D47A1),
+        ),
+        appBarTheme: AppBarTheme(
+          backgroundColor: Color(0xFF0D47A1),
+          iconTheme: IconThemeData(color: Colors.white),
+          titleTextStyle: TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ButtonStyle(
+            backgroundColor: WidgetStateProperty.all(Colors.blue[50]),
+            foregroundColor: WidgetStateProperty.all(Color(0xFF0D47A1)),
+          ),
+        ),
+        checkboxTheme: CheckboxThemeData(
+          checkColor: WidgetStateProperty.all(Colors.white),
+          fillColor: WidgetStateProperty.resolveWith<Color>(
+            (Set<WidgetState> states) {
+              if (states.contains(WidgetState.selected)) {
+                return Color(0xFF0D47A1);
+              }
+              return Colors.white;
+            },
+          ),
+        ),
+        colorScheme: ColorScheme.light(
+          primary: Color(0xFF0D47A1), // Cor de destaque (botões e datas selecionadas)
+          onPrimary: Colors.white, // Cor do texto nos botões
+          surface: Colors.white, // Fundo do DatePicker
+          onSurface: Colors.black, // Cor do texto padrão
+        ),
+        textButtonTheme: TextButtonThemeData(
+          style: TextButton.styleFrom(
+            foregroundColor: Color(0xFF0D47A1), // Cor dos botões "CANCELAR" e "OK"
+          ),
+        ),
+      ),
+      supportedLocales: const [
+        Locale('en', 'US'),
+        Locale('pt', 'BR'),
+      ],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      locale: Locale('pt', 'BR'),
+
       home: Scaffold(
         appBar: PreferredSize(
           preferredSize: Size.fromHeight(70.0),
@@ -15,14 +83,14 @@ class LoginScreen extends StatelessWidget {
             backgroundColor: Color(0xFF0077C8),
             title: Row(
               mainAxisAlignment: MainAxisAlignment.center,
-                children: [
+              children: [
                 SizedBox(
-                  height: 80, // Aumentado de 60 para 80
+                  height: 80, 
                   child: Image.asset(
-                  'images/logo.png', // Logo da sua aplicação
+                    'images/logo.png', 
                   ),
                 ),
-                ],
+              ],
             ),
           ),
         ),
@@ -32,12 +100,12 @@ class LoginScreen extends StatelessWidget {
               decoration: BoxDecoration(
                 image: DecorationImage(
                   image: AssetImage(
-                      'images/background_login.jpg'), // Imagem de fundo
+                      'images/background_login.jpg'), 
                   fit: BoxFit.cover,
                 ),
               ),
             ),
-            LoginForm(), // O formulário de login
+            LoginForm(), 
           ],
         ),
       ),
@@ -46,6 +114,10 @@ class LoginScreen extends StatelessWidget {
 }
 
 class LoginForm extends StatefulWidget {
+  // final Function(dynamic) login;
+
+  // const LoginForm({super.key, required this.login});
+  
   @override
   _LoginFormState createState() => _LoginFormState();
 }
@@ -56,6 +128,11 @@ class _LoginFormState extends State<LoginForm> {
   bool _isLoading = false;
   bool _hasError = false;
   String _errorMessage = '';
+  String token = '';
+
+  String getToken() {
+    return token;
+  }
 
   Future<void> _login() async {
     setState(() {
@@ -66,7 +143,7 @@ class _LoginFormState extends State<LoginForm> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://localhost:8080/login'), // URL da API
+        Uri.parse('http://localhost:8080/login'), 
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -81,24 +158,25 @@ class _LoginFormState extends State<LoginForm> {
       });
 
       if (response.statusCode == 200) {
-        // Sucesso no login
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Login Bem-Sucedido!'),
-            backgroundColor: Color(0xFF2ecc71),
-            duration: Duration(seconds: 2),
-            behavior: SnackBarBehavior.floating,
-            margin: EdgeInsets.only(
-                top: 10.0, right: 10.0, left: 300.0, bottom: 830),
-          ),
-        );
+        setState(() {
+          token = json.decode(response.body)['token'];
+        });
+        // ScaffoldMessenger.of(context).showSnackBar(
+        //   SnackBar(
+        //     content: Text('Login Bem-Sucedido!'),
+        //     backgroundColor: Color(0xFF2ecc71),
+        //     duration: Duration(seconds: 2),
+        //     behavior: SnackBarBehavior.floating,
+        //     margin: EdgeInsets.only(
+        //         top: 10.0, right: 10.0, left: 300.0, bottom: 830),
+        //   ),
+        // );
 
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => MainScreen()),
+          MaterialPageRoute(builder: (context) => MainScreen(token: token)),
         );
       } else if (response.statusCode == 401) {
-        // Falha no login
         setState(() {
           _hasError = true;
           ScaffoldMessenger.of(context).showSnackBar(
@@ -113,7 +191,6 @@ class _LoginFormState extends State<LoginForm> {
           );
         });
       } else {
-        // Erro interno do servidor
         setState(() {
           _errorMessage = 'Erro interno do servidor';
         });
@@ -143,7 +220,6 @@ class _LoginFormState extends State<LoginForm> {
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            // Adicionando o texto "LOGIN" aqui
             Text(
               'LOGIN',
               style: TextStyle(
@@ -245,44 +321,44 @@ class _LoginFormState extends State<LoginForm> {
                       style: TextStyle(color: Colors.white, fontSize: 18.0),
                     ),
                   ),
-            SizedBox(height: 40), // Aumenta o espaçamento antes dos ícones
+            SizedBox(height: 40),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Spacer(), // Adiciona um espaço flexível
+                Spacer(),
                 IconButton(
                   icon: ImageIcon(
                     AssetImage('images/whatswhite.png'),
-                    size: 52.42, // 43.68 * 1.2
-                    color: Colors.green, // Cor verde para WhatsApp
+                    size: 52.42, 
+                    color: Colors.green, 
                   ),
                   onPressed: () {
                     // Ação para WhatsApp
                   },
                 ),
-                SizedBox(width: 30), // Espaçamento de 30px
+                SizedBox(width: 30),
                 IconButton(
                   icon: ImageIcon(
                     AssetImage('images/instawhite.png'),
-                    size: 52.42, // 43.68 * 1.2
-                    color: Colors.orange, // Cor laranja para Instagram
+                    size: 52.42, 
+                    color: Colors.orange, 
                   ),
                   onPressed: () {
                     // Ação para Instagram
                   },
                 ),
-                SizedBox(width: 30), // Espaçamento de 30px
+                SizedBox(width: 30), 
                 IconButton(
                   icon: ImageIcon(
                     AssetImage('images/facewhite.png'),
-                    size: 52.42, // 43.68 * 1.2
-                    color: Colors.blue, // Cor azul para Facebook
+                    size: 52.42, 
+                    color: Colors.blue, 
                   ),
                   onPressed: () {
                     // Ação para Facebook
                   },
                 ),
-                Spacer(), // Adiciona um espaço flexível
+                Spacer(), 
               ],
             ),
           ],

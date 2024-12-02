@@ -6,7 +6,9 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: CadastroPerguntaForm(onTap: (int ) {  },),
+      home: CadastroPerguntaForm(
+        onTap: (int) {},
+      ),
     );
   }
 }
@@ -14,9 +16,10 @@ class MyApp extends StatelessWidget {
 class CadastroPerguntaForm extends StatefulWidget {
   final Function(int) onTap;
   final Map<String, dynamic>? initialData;
-  final void Function(Map<String, dynamic> updatedData, int indexTelaFormulario)? onSave;
+  final void Function(
+      Map<String, dynamic> updatedData, int indexTelaFormulario)? onSave;
 
-  CadastroPerguntaForm({required this.onTap, this.initialData,  this.onSave});
+  CadastroPerguntaForm({required this.onTap, this.initialData, this.onSave});
 
   @override
   _CadastroPerguntaFormState createState() => _CadastroPerguntaFormState();
@@ -76,16 +79,22 @@ class _CadastroPerguntaFormState extends State<CadastroPerguntaForm> {
                     children: [
                       Text(
                         'Pergunta',
-                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            fontSize: 24, fontWeight: FontWeight.bold),
                       ),
                       SizedBox(height: height * 0.02),
                       DropdownButtonFormField<String>(
                         value: _eixoSelecionado,
                         decoration: InputDecoration(
                           labelText: 'Eixo da pergunta',
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10.0)),
                         ),
-                        items: ['Ambiental', 'Governamental', 'Social'] // Exemplo de opções
+                        items: [
+                          'Ambiental',
+                          'Governamental',
+                          'Social'
+                        ] 
                             .map((label) => DropdownMenuItem(
                                   child: Text(label),
                                   value: label,
@@ -109,7 +118,8 @@ class _CadastroPerguntaFormState extends State<CadastroPerguntaForm> {
                         maxLines: 5,
                         decoration: InputDecoration(
                           labelText: 'Pergunta',
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10.0)),
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -119,6 +129,7 @@ class _CadastroPerguntaFormState extends State<CadastroPerguntaForm> {
                         },
                       ),
                       SizedBox(height: height * 0.04),
+                      Spacer(), 
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -132,11 +143,13 @@ class _CadastroPerguntaFormState extends State<CadastroPerguntaForm> {
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10.0),
                                 ),
-                                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 12),
                               ),
                               child: Text(
                                 'Cancelar',
-                                style: TextStyle(color: Colors.white, fontSize: 14),
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 14),
                               ),
                             ),
                           ),
@@ -151,7 +164,9 @@ class _CadastroPerguntaFormState extends State<CadastroPerguntaForm> {
                                   };
 
                                   if (widget.onSave != null) {
-                                    widget.initialData == null ? widget.onSave!(updatedData, 0) : widget.onSave!(updatedData, 1);
+                                    widget.initialData == null
+                                        ? widget.onSave!(updatedData, 0)
+                                        : widget.onSave!(updatedData, 1);
                                   }
                                 }
                               },
@@ -160,11 +175,15 @@ class _CadastroPerguntaFormState extends State<CadastroPerguntaForm> {
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10.0),
                                 ),
-                                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 12),
                               ),
                               child: Text(
-                                'Adicionar',
-                                style: TextStyle(color: Colors.white, fontSize: 14),
+                                widget.initialData == null
+                                    ? 'Adicionar'
+                                    : 'Salvar',
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 14),
                               ),
                             ),
                           ),

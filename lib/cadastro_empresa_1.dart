@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'header.dart';
+import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
+import 'package:flutter/services.dart';
 
 void main() => runApp(MyApp());
 
@@ -9,7 +11,9 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: CadastroForm(onTap: (int ) {  },),
+      home: CadastroForm(
+        onTap: (int) {},
+      ),
     );
   }
 }
@@ -17,9 +21,29 @@ class MyApp extends StatelessWidget {
 class CadastroForm extends StatefulWidget {
   final Function(int) onTap;
   final Map<String, dynamic>? initialData;
-  final void Function(Map<String, dynamic> updatedData, int indexTelaFormulario)? onSave;
+  final void Function(
+      Map<String, dynamic> updatedData, int indexTelaFormulario)? onSave;
+  final String? errorMessage;
 
-  CadastroForm({required this.onTap, this.initialData,  this.onSave});
+  final _cnpjMask = MaskTextInputFormatter(
+    mask: '##.###.###/####-##',
+    filter: {"#": RegExp(r'[0-9]')},
+  );
+  final _telefoneEmpresaMask = MaskTextInputFormatter(
+    mask: '(##) #####-####',
+    filter: {"#": RegExp(r'[0-9]')},
+  );
+  final _telefoneSolicitanteMask = MaskTextInputFormatter(
+    mask: '(##) #####-####',
+    filter: {"#": RegExp(r'[0-9]')},
+  );
+  final _cepMask = MaskTextInputFormatter(
+    mask: '#####-###',
+    filter: {"#": RegExp(r'[0-9]')},
+  );
+
+  CadastroForm(
+      {required this.onTap, this.initialData, this.onSave, this.errorMessage});
 
   @override
   _CadastroFormState createState() => _CadastroFormState();
@@ -35,52 +59,75 @@ class _CadastroFormState extends State<CadastroForm> {
   final TextEditingController _cepController = TextEditingController();
   final TextEditingController _ufController = TextEditingController();
 
-  final TextEditingController _inscricaoSocialController = TextEditingController();
-  final TextEditingController _telefoneEmpresasController = TextEditingController();
+  final TextEditingController _inscricaoSocialController =
+      TextEditingController();
+  final TextEditingController _telefoneEmpresasController =
+      TextEditingController();
   final TextEditingController _cidadeController = TextEditingController();
   final TextEditingController _bairroController = TextEditingController();
   final TextEditingController _logradouroController = TextEditingController();
   final TextEditingController _numeroController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _ramoController = TextEditingController();
+  String? _ramoController;
   String? _porteSelecionado;
 
-  final TextEditingController _nomeSolicitanteController = TextEditingController();
-  final TextEditingController _telefoneSolicitanteController = TextEditingController();
+  final TextEditingController _nomeSolicitanteController =
+      TextEditingController();
+  final TextEditingController _telefoneSolicitanteController =
+      TextEditingController();
 
-
-@override
+  @override
   void initState() {
     super.initState();
     if (widget.initialData != null) {
       _nomeFantasiaController.text = widget.initialData!['nomeFantasia'] ?? '';
       _razaoSocialController.text = widget.initialData!['razaoSocial'] ?? '';
-      _cnpjController.text = widget.initialData!['cnpj'] ?? '';
-      _inscricaoSocialController.text = widget.initialData!['inscricaoSocial'] ?? '';
-      _telefoneEmpresasController.text = widget.initialData!['telefoneEmpresas'] ?? '';
+      _inscricaoSocialController.text =
+          widget.initialData!['inscricaoSocial'] ?? '';
       _cepController.text = widget.initialData!['endereco']?['cep'] ?? '';
       _ufController.text = widget.initialData!['endereco']?['uf'] ?? '';
       _cidadeController.text = widget.initialData!['endereco']?['cidade'] ?? '';
       _bairroController.text = widget.initialData!['endereco']?['bairro'] ?? '';
-      _logradouroController.text = widget.initialData!['endereco']?['logradouro'] ?? '';
-      _numeroController.text = widget.initialData!['endereco']!['numero'].toString();
+      _logradouroController.text =
+          widget.initialData!['endereco']?['logradouro'] ?? '';
+      _numeroController.text =
+          widget.initialData!['endereco']!['numero'].toString();
       _emailController.text = widget.initialData!['email'] ?? '';
-      _ramoController.text = widget.initialData!['ramo'] ?? '';
+      _ramoController = widget.initialData!['ramo'] ?? '';
       _porteSelecionado = widget.initialData!['porteEmpresas'];
-      _nomeSolicitanteController.text = widget.initialData!['nomeSolicitante'] ?? '';
-      _telefoneSolicitanteController.text = widget.initialData!['telefoneSolicitante'] ?? '';
+      _nomeSolicitanteController.text =
+          widget.initialData!['nomeSolicitante'] ?? '';
+
+      final cnpj = widget.initialData!['cnpj'] ?? '';
+      _cnpjController.text = widget._cnpjMask?.maskText(cnpj) ?? cnpj;
+
+      final telefoneSolicitante =
+          widget.initialData!['telefoneSolicitante'] ?? '';
+      if (telefoneSolicitante.isNotEmpty) {
+        _telefoneSolicitanteController.text =
+            widget._telefoneSolicitanteMask.maskText(telefoneSolicitante);
+      }
+
+      final telefoneEmpresa = widget.initialData!['telefoneEmpresas'] ?? '';
+      if (telefoneEmpresa.isNotEmpty) {
+        _telefoneEmpresasController.text =
+            widget._telefoneEmpresaMask.maskText(telefoneEmpresa);
+      }
+
+      final cep = widget.initialData!['endereco']?['cep'] ?? '';
+      if (cep.isNotEmpty) {
+        _cepController.text = widget._cepMask.maskText(cep);
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Pega a altura e largura da tela
     final height = MediaQuery.of(context).size.height;
     final width = MediaQuery.of(context).size.width;
 
     return Scaffold(
       backgroundColor: Colors.white,
-
       body: SingleChildScrollView(
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
@@ -112,7 +159,8 @@ class _CadastroFormState extends State<CadastroForm> {
                     children: [
                       if (_currentIndex == 0) _buildEmpresaForm(height, width),
                       if (_currentIndex == 1) _buildEnderecoForm(height, width),
-                      if (_currentIndex == 2) _buildInformacoesPessoaisForm(height, width),
+                      if (_currentIndex == 2)
+                        _buildInformacoesPessoaisForm(height, width),
                     ],
                   ),
                 ),
@@ -129,30 +177,59 @@ class _CadastroFormState extends State<CadastroForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Empresa', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+        Text('Empresa',
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
         SizedBox(height: height * 0.02),
         TextFormField(
           controller: _nomeFantasiaController,
           decoration: InputDecoration(
             labelText: 'Nome Fantasia',
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
+            border:
+                OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
           ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Por favor, insira o nome fantasia';
+            }
+            return null;
+          },
         ),
         SizedBox(height: height * 0.02),
         TextFormField(
           controller: _razaoSocialController,
           decoration: InputDecoration(
             labelText: 'Razão Social',
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
+            border:
+                OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
           ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Por favor, insira a razão social';
+            }
+            return null;
+          },
         ),
         SizedBox(height: height * 0.02),
         TextFormField(
+          inputFormatters: [widget._cnpjMask],
           controller: _cnpjController,
+          keyboardType: TextInputType.number,
           decoration: InputDecoration(
             labelText: 'CNPJ',
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
+            border:
+                OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
           ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Por favor, insira o CNPJ';
+            } else if (widget._cnpjMask.getUnmaskedText() != '' &&
+                widget._cnpjMask.getUnmaskedText().length != 14) {
+              return 'CNPJ inválido';
+            } else if (_cnpjController.text.length != 18) {
+              return 'CNPJ inválido';
+            }
+            return null;
+          },
         ),
         SizedBox(height: height * 0.02),
         TextFormField(
@@ -161,21 +238,52 @@ class _CadastroFormState extends State<CadastroForm> {
             labelText: 'Inscrição Social',
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
           ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Por favor, insira a inscrição social';
+            }
+            return null;
+          },
+          keyboardType: TextInputType.number, // Abre o teclado numérico
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly, // Permite apenas números
+            LengthLimitingTextInputFormatter(20), // Limita a 20 caracteres
+          ],
         ),
         SizedBox(height: height * 0.02),
         TextFormField(
           controller: _telefoneEmpresasController,
+          inputFormatters: [widget._telefoneEmpresaMask], // Adiciona a máscara
+          keyboardType: TextInputType.number,
           decoration: InputDecoration(
             labelText: 'Telefone da Empresa',
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
+            border:
+                OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
           ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Por favor, insira o telefone da empresa';
+            } else if (widget._telefoneEmpresaMask.getUnmaskedText() != '' &&
+                widget._telefoneEmpresaMask.getUnmaskedText().length != 11) {
+              print(
+                  'entrou primeiro ${widget._telefoneEmpresaMask.getUnmaskedText().length}');
+              return 'Telefone inválido';
+            } else if (_telefoneEmpresasController.text.length != 15) {
+              print(
+                  'entrou segundo ${_telefoneEmpresasController.text.length}');
+
+              return 'Telefone inválido';
+            }
+            return null;
+          },
         ),
         SizedBox(height: height * 0.02),
         DropdownButtonFormField<String>(
           value: _porteSelecionado,
           decoration: InputDecoration(
             labelText: 'Porte da Empresa',
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
+            border:
+                OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
           ),
           items: ['Pequeno', 'Médio', 'Grande']
               .map((label) => DropdownMenuItem(
@@ -188,16 +296,44 @@ class _CadastroFormState extends State<CadastroForm> {
               _porteSelecionado = value;
             });
           },
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Por favor, selecione o porte da empresa';
+            }
+            return null;
+          },
         ),
         SizedBox(height: height * 0.02),
-        TextFormField(
-          controller: _ramoController,
+
+        DropdownButtonFormField<String>(
+          value: _ramoController,
           decoration: InputDecoration(
-            labelText: 'Ramo',
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
+            labelText: 'Ramo da Empresa',
+            border:
+                OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
           ),
+          items:
+              ['Automotivo', 'Indústria', 'Educação', 'Comércio', 'Agricultura']
+                  .map((label) => DropdownMenuItem(
+                        child: Text(label),
+                        value: label,
+                      ))
+                  .toList(),
+          onChanged: (value) {
+            setState(() {
+              _ramoController = value;
+            });
+          },
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Por favor, selecione o ramo da empresa';
+            }
+            return null;
+          },
         ),
-        SizedBox(height: height * 0.04),
+
+
+        SizedBox(height: height * 0.11),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -225,7 +361,7 @@ class _CadastroFormState extends State<CadastroForm> {
             SizedBox(width: 8),
             Expanded(
               child: ElevatedButton(
-                onPressed: null, 
+                onPressed: null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.grey,
                   shape: RoundedRectangleBorder(
@@ -279,57 +415,116 @@ class _CadastroFormState extends State<CadastroForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Endereço', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+        Text('Endereço',
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
         SizedBox(height: height * 0.02),
         TextFormField(
           controller: _cepController,
+          inputFormatters: [widget._cepMask],
+          keyboardType: TextInputType.number,
           decoration: InputDecoration(
             labelText: 'CEP',
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
+            border:
+                OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
           ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Por favor, insira o CEP';
+            } else if (widget._cepMask.getUnmaskedText() != '' &&
+                widget._cepMask.getUnmaskedText().length != 8) {
+              return 'CEP inválido';
+            } else if (_cepController.text.length != 9) {
+              return 'CEP inválido';
+            }
+            return null;
+          },
         ),
         SizedBox(height: height * 0.02),
         TextFormField(
           controller: _ufController,
           decoration: InputDecoration(
             labelText: 'UF',
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
+            border:
+                OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
           ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Por favor, insira a UF';
+            }
+            return null;
+          },
         ),
         SizedBox(height: height * 0.02),
         TextFormField(
           controller: _cidadeController,
           decoration: InputDecoration(
             labelText: 'Cidade',
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
+            border:
+                OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
           ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Por favor, insira a cidade';
+            }
+            return null;
+          },
         ),
         SizedBox(height: height * 0.02),
         TextFormField(
           controller: _bairroController,
           decoration: InputDecoration(
             labelText: 'Bairro',
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
+            border:
+                OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
           ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Por favor, insira o bairro';
+            }
+            return null;
+          },
         ),
         SizedBox(height: height * 0.02),
         TextFormField(
           controller: _logradouroController,
           decoration: InputDecoration(
             labelText: 'Rua',
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
+            border:
+                OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
           ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Por favor, insira a rua';
+            }
+            return null;
+          },
         ),
-        
         SizedBox(height: height * 0.02),
+
         TextFormField(
           controller: _numeroController,
+          keyboardType: TextInputType.number,
           decoration: InputDecoration(
             labelText: 'Número',
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
+            border:
+                OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
           ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Por favor, insira o número';
+            } else if (int.tryParse(value) == null) {
+              return 'Por favor, insira apenas números';
+            }
+            return null;
+          },
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+          ],
+
         ),
-        SizedBox(height: height * 0.04),
+
+        
+        SizedBox(height: height * 0.195),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -349,19 +544,19 @@ class _CadastroFormState extends State<CadastroForm> {
                   'Cancelar',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 14, 
+                    fontSize: 14,
                   ),
                 ),
               ),
             ),
-            SizedBox(width: 8), 
+            SizedBox(width: 8),
             Expanded(
               child: ElevatedButton(
                 onPressed: () {
-                    setState(() {
-                      _currentIndex = 0;
-                    });
-                  },
+                  setState(() {
+                    _currentIndex = 0;
+                  });
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.grey,
                   shape: RoundedRectangleBorder(
@@ -378,7 +573,7 @@ class _CadastroFormState extends State<CadastroForm> {
                 ),
               ),
             ),
-            SizedBox(width: 8), 
+            SizedBox(width: 8),
             Expanded(
               child: ElevatedButton(
                 onPressed: () {
@@ -415,32 +610,63 @@ class _CadastroFormState extends State<CadastroForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Informações pessoais', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+        Text('Informações pessoais',
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
         SizedBox(height: height * 0.02),
         TextFormField(
           controller: _nomeSolicitanteController,
           decoration: InputDecoration(
             labelText: 'Nome do solicitante',
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
+            border:
+                OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
           ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Por favor, insira o nome do solicitante';
+            }
+            return null;
+          },
         ),
         SizedBox(height: height * 0.02),
         TextFormField(
           controller: _telefoneSolicitanteController,
+          inputFormatters: [widget._telefoneSolicitanteMask],
+          keyboardType: TextInputType.number,
           decoration: InputDecoration(
             labelText: 'Telefone do solicitante',
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
+            border:
+                OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
           ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Por favor, insira o telefone do solicitante';
+            } else if (widget._telefoneSolicitanteMask.getUnmaskedText() !=
+                    '' &&
+                widget._telefoneSolicitanteMask.getUnmaskedText().length !=
+                    11) {
+              return 'Telefone inválido';
+            } else if (_telefoneSolicitanteController.text.length != 15) {
+              return 'Telefone inválido';
+            }
+            return null;
+          },
         ),
         SizedBox(height: height * 0.02),
         TextFormField(
           controller: _emailController,
           decoration: InputDecoration(
             labelText: 'Email',
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
+            border:
+                OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
           ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Por favor, insira o email';
+            }
+            return null;
+          },
         ),
-        SizedBox(height: height * 0.04),
+        SizedBox(height: height * 0.45),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -453,29 +679,29 @@ class _CadastroFormState extends State<CadastroForm> {
                   });
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red, 
+                  backgroundColor: Colors.red,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10.0),
                   ),
-                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 12), 
+                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                 ),
                 child: Text(
                   'Cancelar',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 14, 
+                    fontSize: 14,
                   ),
                 ),
               ),
             ),
-            SizedBox(width: 8), 
+            SizedBox(width: 8),
             Expanded(
               child: ElevatedButton(
                 onPressed: () {
-                    setState(() {
-                      _currentIndex = 1;
-                    });
-                  },
+                  setState(() {
+                    _currentIndex = 1;
+                  });
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.grey,
                   shape: RoundedRectangleBorder(
@@ -492,7 +718,7 @@ class _CadastroFormState extends State<CadastroForm> {
                 ),
               ),
             ),
-            SizedBox(width: 8), 
+            SizedBox(width: 8),
             Expanded(
               child: ElevatedButton(
                 onPressed: () {
@@ -500,26 +726,39 @@ class _CadastroFormState extends State<CadastroForm> {
                     final updatedData = {
                       'nomeFantasia': _nomeFantasiaController.text,
                       'razaoSocial': _razaoSocialController.text,
-                      'cnpj': _cnpjController.text,
+                      'cnpj': widget._cnpjMask.getUnmaskedText() != ''
+                          ? widget._cnpjMask.getUnmaskedText()
+                          : limparCnpj(_cnpjController.text),
                       'inscricaoSocial': _inscricaoSocialController.text,
-                      'telefoneEmpresas': _telefoneEmpresasController.text,
+                      'telefoneEmpresas':
+                          widget._telefoneEmpresaMask.getUnmaskedText() != ''
+                              ? widget._telefoneEmpresaMask.getUnmaskedText()
+                              : _telefoneEmpresasController.text,
                       'endereco': {
-                        'cep': _cepController.text,
+                        'cep': widget._cepMask.getUnmaskedText() != ''
+                            ? widget._cepMask.getUnmaskedText()
+                            : _cepController.text,
                         'uf': _ufController.text,
                         'cidade': _cidadeController.text,
                         'bairro': _bairroController.text,
                         'logradouro': _logradouroController.text,
-                        'numero': int.tryParse(_numeroController.text) ?? 0, 
+                        'numero': int.tryParse(_numeroController.text) ?? 0,
                       },
                       'email': _emailController.text,
-                      'ramo': _ramoController.text,
+                      'ramo': _ramoController,
                       'porteEmpresas': _porteSelecionado,
                       'nomeSolicitante': _nomeSolicitanteController.text,
-                      'telefoneSolicitante': _telefoneSolicitanteController.text,
+                      'telefoneSolicitante': widget._telefoneSolicitanteMask
+                                  .getUnmaskedText() !=
+                              ''
+                          ? widget._telefoneSolicitanteMask.getUnmaskedText()
+                          : _telefoneSolicitanteController.text,
                     };
 
                     if (widget.onSave != null) {
-                      widget.initialData == null ? widget.onSave!(updatedData, 0) : widget.onSave!(updatedData, 1);
+                      widget.initialData == null
+                          ? widget.onSave!(updatedData, 0)
+                          : widget.onSave!(updatedData, 1);
                     }
                   }
                 },
@@ -544,4 +783,8 @@ class _CadastroFormState extends State<CadastroForm> {
       ],
     );
   }
+}
+
+String limparCnpj(String cnpj) {
+  return cnpj.replaceAll(RegExp(r'[^0-9]'), '');
 }

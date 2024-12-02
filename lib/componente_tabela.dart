@@ -16,6 +16,9 @@ class TabelaGenerica extends StatefulWidget {
   final bool isSelectable;
   final Function(int) onTap;
   final Function(List<int>)? createFormulario;
+  final String? searchStringParameter;
+  final int currentPage;
+  final bool finishList;
 
   TabelaGenerica({
     required this.colunas,
@@ -30,6 +33,9 @@ class TabelaGenerica extends StatefulWidget {
     required this.onSearchIconTap,
     required this.isSelectable,
     this.createFormulario,
+    this.searchStringParameter,
+    required this.currentPage,
+    required this.finishList,
   });
 
   @override
@@ -39,6 +45,16 @@ class TabelaGenerica extends StatefulWidget {
 class _TabelaGenericaState extends State<TabelaGenerica> {
   final TextEditingController _searchController = TextEditingController();
   final List<int> selectedIds = [];
+
+  @override
+  void didUpdateWidget(covariant TabelaGenerica oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    // Verifica se 'colunas' mudou de valor
+    if (widget.tituloDoFormulario != oldWidget.tituloDoFormulario) {
+      _searchController.clear(); // Limpa o valor do controlador
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,12 +75,37 @@ class _TabelaGenericaState extends State<TabelaGenerica> {
                 fontWeight: FontWeight.bold,
               ),
             ),
+            // decoration: BoxDecoration(
+            //   boxShadow: [
+            //   BoxShadow(
+            //     color: Colors.grey.withOpacity(0.5),
+            //     spreadRadius: 2,
+            //     blurRadius: 5,
+            //     offset: Offset(0, 3), // changes position of shadow
+            //   ),
+            //   ],
+            // ),
           ),
+
+
+
           // Área de botão e pesquisa
           Container(
             alignment: Alignment.centerLeft,
-            color: Colors.grey.shade100,
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            // color: Colors.grey.shade100,
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade100,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.5), // Cor da sombra
+                  spreadRadius: 2, // Espalhamento da sombra
+                  blurRadius: 7, // Suavização da sombra
+                  offset: Offset(0, -3), // Desloca a sombra para cima
+                ),
+              ],
+            ),
             child: Row(
               children: [
                 ElevatedButton(
@@ -72,7 +113,8 @@ class _TabelaGenericaState extends State<TabelaGenerica> {
                     widget.onTap(widget.indexTelaFormulario);
                   },
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8.0, vertical: 12.0),
                     child: Text(
                       'Novo registro',
                       style: TextStyle(fontSize: 14.0, color: Colors.white),
@@ -93,7 +135,10 @@ class _TabelaGenericaState extends State<TabelaGenerica> {
                     decoration: InputDecoration(
                       prefixIcon: GestureDetector(
                         onTap: () {
-                          widget.onSearchIconTap(_searchController.text);
+                          widget.onSearchIconTap(_searchController.text !=
+                                  widget.searchStringParameter
+                              ? _searchController.text
+                              : widget.searchStringParameter ?? '');
                         },
                         child: Icon(Icons.search, color: Colors.grey, size: 20),
                       ),
@@ -135,28 +180,51 @@ class _TabelaGenericaState extends State<TabelaGenerica> {
                     scrollDirection: Axis.horizontal,
                     child: DataTable(
                       columnSpacing: 8.0,
-                      headingRowColor: MaterialStateColor.resolveWith((states) => Colors.grey.shade200),
+                      headingRowColor: MaterialStateColor.resolveWith(
+                          (states) => Colors.grey.shade200),
                       dataRowHeight: 40.0,
                       columns: [
                         if (widget.isSelectable)
                           DataColumn(
-                            label: Text(
-                              'Selecionar',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.0),
+                            label: ConstrainedBox(
+                              constraints: BoxConstraints(
+                                  minWidth: 100.0),
+                              child: Text(
+                                'Selecionar',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12.0),
+                              ),
                             ),
                           ),
                         ...widget.colunas.map(
                           (coluna) => DataColumn(
-                            label: Text(
-                              coluna,
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.0),
+                            label: ConstrainedBox(
+                              constraints: BoxConstraints(
+                                  minWidth:
+                                      150.0), 
+                              child: Text(
+                                coluna,
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12.0),
+                              ),
                             ),
                           ),
                         ),
                         DataColumn(
-                          label: Text(
-                            'Ações',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.0),
+                          label: ConstrainedBox(
+                            constraints: BoxConstraints(
+                                minWidth:
+                                    100.0), 
+                            child: Center(
+                              child: Text(
+                                'Ações',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12.0),
+                              ),
+                            ),
                           ),
                         ),
                       ],
@@ -164,10 +232,12 @@ class _TabelaGenericaState extends State<TabelaGenerica> {
                         widget.dados.length,
                         (index) {
                           final linha = widget.dados[index];
-                          final corDeFundo = index.isEven ? Colors.white : Colors.blue.shade50;
+                          final corDeFundo =
+                              index.isEven ? Colors.white : Colors.blue.shade50;
 
                           return DataRow(
-                            color: MaterialStateColor.resolveWith((states) => corDeFundo),
+                            color: MaterialStateColor.resolveWith(
+                                (states) => corDeFundo),
                             cells: [
                               if (widget.isSelectable)
                                 DataCell(
@@ -184,21 +254,26 @@ class _TabelaGenericaState extends State<TabelaGenerica> {
                                     },
                                   ),
                                 ),
-                              ...widget.colunas.map((coluna) => DataCell(
-                                Text(
-                                  linha[coluna]?.toString() ?? '',
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              )).toList(),
+                              ...widget.colunas
+                                  .map((coluna) => DataCell(
+                                        Text(
+                                          linha[coluna]?.toString() ?? '',
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ))
+                                  .toList(),
                               DataCell(
                                 Row(
                                   children: [
                                     IconButton(
-                                      icon: Icon(Icons.edit, color: Colors.blue),
-                                      onPressed: () => widget.onEdit(linha['id']),
+                                      icon:
+                                          Icon(Icons.edit, color: Colors.blue),
+                                      onPressed: () =>
+                                          widget.onEdit(linha['id']),
                                     ),
                                     IconButton(
-                                      icon: Icon(Icons.delete, color: Colors.red),
+                                      icon:
+                                          Icon(Icons.delete, color: Colors.red),
                                       onPressed: () {
                                         showDeleteConfirmation(
                                           context,
@@ -224,47 +299,66 @@ class _TabelaGenericaState extends State<TabelaGenerica> {
           ),
           // Botões de paginação
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0), // Mesma padding horizontal
+            padding: const EdgeInsets.symmetric(
+                horizontal: 16.0, vertical: 8.0), 
             child: Row(
               children: [
                 if (widget.isSelectable)
-                ElevatedButton(
-                  onPressed: () {
-                    widget.createFormulario!(selectedIds);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF0077C8),
-                    padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8.0),
+                  ElevatedButton(
+                    onPressed: () {
+                      widget.createFormulario!(selectedIds);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xFF0077C8),
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 16.0, vertical: 12.0),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                    ),
+                    child: Text(
+                      'Criar Formulário',
+                      style: TextStyle(color: Colors.white, fontSize: 14),
                     ),
                   ),
-                  child: Text(
-                    'Criar Formulário',
-                    style: TextStyle(color: Colors.white, fontSize: 14),
-                  ),
-                ),
                 Spacer(),
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade200,
+                    color: widget.currentPage > 0
+                        ? Colors.blue.shade50
+                        : Colors.grey.shade200,
                     borderRadius: BorderRadius.circular(4.0),
-                    border: Border.all(color: Colors.grey, width: 2.0),
+                    border: Border.all(
+                        color:
+                            widget.currentPage > 0 ? Colors.blue : Colors.grey,
+                        width: 2.0),
                   ),
                   child: IconButton(
-                    icon: Icon(Icons.arrow_back, color: Colors.grey),
+                    icon: Icon(
+                      Icons.arrow_back,
+                      color: widget.currentPage > 0 ? Colors.blue : Colors.grey,
+                    ),
                     onPressed: widget.onPageBack,
                   ),
                 ),
                 SizedBox(width: 8),
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.blue.shade50,
+                    color: widget.finishList != true
+                        ? Colors.blue.shade50
+                        : Colors.grey.shade200,
                     borderRadius: BorderRadius.circular(4.0),
-                    border: Border.all(color: Colors.blue, width: 2.0),
+                    border: Border.all(
+                        color: widget.finishList != true
+                            ? Colors.blue
+                            : Colors.grey,
+                        width: 2.0),
                   ),
                   child: IconButton(
-                    icon: Icon(Icons.arrow_forward, color: Colors.blue),
+                    icon: Icon(Icons.arrow_forward,
+                        color: widget.finishList != true
+                            ? Colors.blue
+                            : Colors.grey),
                     onPressed: widget.onPageForward,
                   ),
                 ),
