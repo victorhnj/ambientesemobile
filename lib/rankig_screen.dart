@@ -1,13 +1,11 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:ambientese/header.dart';
-import 'package:ambientese/custon_drawer.dart'; // Certifique-se de que o caminho está correto
 import 'package:url_launcher/url_launcher.dart';
 
 class RankingScreen extends StatefulWidget {
   final bool finishList1;
-  String? token;
+  final String? token;
 
   RankingScreen({required this.finishList1, required this.token});
 
@@ -21,17 +19,13 @@ class _RankingScreenState extends State<RankingScreen> {
   List filteredRankingData = [];
   List top3RankingData = [];
   int _currentPage = 0;
-  final int _pageSize = 15;
+  final int _pageSize = 20;  // Atualizado para 20 itens por página
   bool _hasMoreData = true;
-  bool finishList1 = false;
   bool finishList = false;
   String? selectedRamo;
   String? selectedPorte;
   final TextEditingController searchController = TextEditingController();
   String? token;
-
-  // final String token =
-  //     'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyb290IiwiY2FyZ28iOiJBZG1pbiIsImV4cCI6MTczMzA4NzM5OX0.WV_PTMbPyou3ko8rM--G-u_XNMSfcTKBZO0Q_0g4kic';
 
   @override
   void initState() {
@@ -43,8 +37,7 @@ class _RankingScreenState extends State<RankingScreen> {
   }
 
   Future<void> fetchTop3RankingData() async {
-    final url =
-        Uri.parse('http://localhost:8080/ranking/pontuacao?page=0&size=3');
+    final url = Uri.parse('http://localhost:8080/ranking/pontuacao?page=0&size=3');
 
     try {
       final response = await http.get(
@@ -68,8 +61,7 @@ class _RankingScreenState extends State<RankingScreen> {
   }
 
   Future<void> fetchRankingData(int page) async {
-    String url =
-        'http://localhost:8080/ranking/pontuacao?page=$page&size=$_pageSize';
+    String url = 'http://localhost:8080/ranking/pontuacao?page=$page&size=$_pageSize';
 
     if (selectedRamo != null) {
       url += '&ramo=${Uri.encodeComponent(selectedRamo!)}';
@@ -95,10 +87,10 @@ class _RankingScreenState extends State<RankingScreen> {
           if (data.isEmpty) {
             _hasMoreData = false;
           } else {
-            rankingData = data
+            rankingData.addAll(data
                 .where((item) => !top3RankingData
-                    .any((topItem) => topItem['id'] == item['id']))
-                .toList();
+                    .any((topItem) => topItem['pontuacaoFinal'] == item['pontuacaoFinal']))
+                .toList());
             filteredRankingData = rankingData;
             _hasMoreData = true;
           }
@@ -111,33 +103,23 @@ class _RankingScreenState extends State<RankingScreen> {
     }
   }
 
-  void _nextPage() {
-    if (_hasMoreData) {
-      setState(() {
-        _currentPage++;
-      });
-      fetchRankingData(_currentPage);
-    }
+Future<void> _launchPDF(int? empresaId) async {
+  if (empresaId == null) {
+    print('Erro: empresaId não pode ser nulo.');
+    return;
   }
 
-  void _previousPage() {
-    if (_currentPage > 0) {
-      setState(() {
-        _currentPage--;
-        _hasMoreData = true;
-      });
-      fetchRankingData(_currentPage);
-    }
-  }
-
-  Future<void> _launchPDF(int empresaId) async {
-    final url = Uri.parse('http://localhost:8080/pdf/getPdf/$empresaId');
+  final url = Uri.parse('http://localhost:8080/pdf/getPdf/$empresaId');
+  try {
     if (await canLaunch(url.toString())) {
       await launch(url.toString());
     } else {
       throw 'Não foi possível abrir o PDF';
     }
+  } catch (e) {
+    print('Erro ao abrir PDF: $e');
   }
+}
 
   void _filterRankingData(String query) {
     setState(() {
@@ -218,7 +200,7 @@ class _RankingScreenState extends State<RankingScreen> {
                               Expanded(
                                 child: Container(
                                   height: 50,
-                                  child: DropdownButtonFormField<String>(
+                                  child: DropdownButtonFormField<String>( 
                                     value: selectedRamo,
                                     hint: Text("Ramo"),
                                     isExpanded: true,
@@ -348,111 +330,34 @@ class _RankingScreenState extends State<RankingScreen> {
                                     ? Colors.blue[50]
                                     : Colors.white,
                                 padding: EdgeInsets.symmetric(
-                                    vertical: 8.0, horizontal: 16.0),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      '${item['ranking']}° - ${item['empresaNome'] ?? ''}',
-                                      style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    Expanded(
-                                      child: Center(
-                                        child: Text(
-                                          item['ramo'] ?? '',
-                                          style: TextStyle(
-                                              fontSize: 16,
-                                              color: const Color.fromARGB(
-                                                  255, 107, 107, 107)),
-                                        ),
-                                      ),
-                                    ),
-                                    Row(
-                                      children: [
-                                        Text(
-                                          '${item['pontuacaoFinal']} pontos',
-                                          style: TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                        IconButton(
-                                          icon: Icon(Icons.picture_as_pdf,
-                                              color: Colors.red),
-                                          onPressed: () =>
-                                              _launchPDF(item['id']),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
+                                    vertical: 8.0, horizontal: 10.0),
+                                margin: EdgeInsets.only(bottom: 8.0),
+                                child: ListTile(
+                                  title: Text(item['empresaNome']),
+                                  subtitle: Text(
+                                    'Pontuação: ${item['pontuacaoFinal']}',
+                                    style: TextStyle(color: Colors.black),
+                                  ),
+                                  trailing: ElevatedButton(
+                                    onPressed: () {
+                                      _launchPDF(item['empresaId']);
+                                    },
+                                    child: Text('Abrir PDF'),
+                                    
+                                  ),
                                 ),
                               );
                             },
+                            
                           ),
                         ),
                       ],
                     ),
                   ),
                 ),
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 0, vertical: 8.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          color: _currentPage > 0
-                              ? Colors.blue.shade50
-                              : Colors.grey.shade200,
-                          borderRadius: BorderRadius.circular(4.0),
-                          border: Border.all(
-                              color:
-                                  _currentPage > 0 ? Colors.blue : Colors.grey,
-                              width: 2.0),
-                        ),
-                        child: IconButton(
-                          icon: Icon(Icons.arrow_back,
-                              color:
-                                  _currentPage > 0 ? Colors.blue : Colors.grey),
-                          onPressed: _currentPage > 0 ? _previousPage : null,
-                        ),
-                      ),
-                      SizedBox(width: 8),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: finishList != true
-                              ? Colors.blue.shade50
-                              : Colors.grey.shade200,
-                          borderRadius: BorderRadius.circular(4.0),
-                          border: Border.all(
-                              color: finishList != true
-                                  ? Colors.blue
-                                  : Colors.grey,
-                              width: 2.0),
-                        ),
-                        child: IconButton(
-                          icon: Icon(Icons.arrow_forward,
-                              color: finishList != true
-                                  ? Colors.blue
-                                  : Colors.grey),
-                          onPressed: finishList ? null : _nextPage,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
               ],
             ),
     );
-  }
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _currentIndex = index;
-    });
   }
 }
 
@@ -467,8 +372,7 @@ class Top3RankingDisplay extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: Row(
-        mainAxisAlignment:
-            MainAxisAlignment.center, 
+        mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (top3RankingData.length > 1)
@@ -487,7 +391,7 @@ class Top3RankingDisplay extends StatelessWidget {
               ),
             ),
           if (top3RankingData.length > 1)
-            SizedBox(width: 8), 
+            SizedBox(width: 8),
           if (top3RankingData.isNotEmpty)
             GestureDetector(
               onTap: () => onTap(top3RankingData[0]['id']),
@@ -503,7 +407,7 @@ class Top3RankingDisplay extends StatelessWidget {
               ),
             ),
           if (top3RankingData.length > 2)
-            SizedBox(width: 8), 
+            SizedBox(width: 8),
           if (top3RankingData.length > 2)
             GestureDetector(
               onTap: () => onTap(top3RankingData[2]['id']),
