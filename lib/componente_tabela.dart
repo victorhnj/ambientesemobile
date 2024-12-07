@@ -63,10 +63,26 @@ class _TabelaGenericaState extends State<TabelaGenerica> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Colors.grey.shade100,
-      child: Column(
-        children: [
+return Scaffold(
+floatingActionButton: selectedIds.isNotEmpty // Verifica se alguma checkbox foi marcada
+    ? FloatingActionButton.extended(
+        onPressed: () {
+          // Ação do botão flutuante
+          widget.createFormulario?.call(selectedIds);
+        },
+        backgroundColor: Color(0xFF0077C8),
+        icon: Icon(Icons.add, color: Colors.white),
+        label: Text(
+          "Criar Formulário",
+          style: TextStyle(color: Colors.white),
+        ),
+      )
+    : null,
+floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
+  body: Container(
+    color: Colors.grey.shade100,
+    child: Column(
+      children: [
           // Título da tabela
           Container(
             width: double.infinity,
@@ -81,7 +97,6 @@ class _TabelaGenericaState extends State<TabelaGenerica> {
               ),
             ),
           ),
-
           // Área de botão e pesquisa
           Container(
             alignment: Alignment.centerLeft,
@@ -287,12 +302,14 @@ class _TabelaGenericaState extends State<TabelaGenerica> {
                       ),
                     ),
                   );
+                  
                 },
               ),
             ),
           ),
         ],
       ),
-    );
+    ),
+  );
   }
 }

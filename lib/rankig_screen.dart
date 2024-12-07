@@ -19,7 +19,7 @@ class _RankingScreenState extends State<RankingScreen> {
   List filteredRankingData = [];
   List top3RankingData = [];
   int _currentPage = 0;
-  final int _pageSize = 20;  // Atualizado para 20 itens por página
+  final int _pageSize = 999999; // Atualizado para 20 itens por página
   bool _hasMoreData = true;
   bool finishList = false;
   String? selectedRamo;
@@ -37,7 +37,8 @@ class _RankingScreenState extends State<RankingScreen> {
   }
 
   Future<void> fetchTop3RankingData() async {
-    final url = Uri.parse('http://localhost:8080/ranking/pontuacao?page=0&size=3');
+    final url =
+        Uri.parse('http://localhost:8080/ranking/pontuacao?page=0&size=3');
 
     try {
       final response = await http.get(
@@ -60,66 +61,70 @@ class _RankingScreenState extends State<RankingScreen> {
     }
   }
 
-  Future<void> fetchRankingData(int page) async {
-    String url = 'http://localhost:8080/ranking/pontuacao?page=$page&size=$_pageSize';
+Future<void> fetchRankingData(int page) async {
+  String url =
+      'http://localhost:8080/ranking/pontuacao?page=$page&size=$_pageSize';
 
-    if (selectedRamo != null) {
-      url += '&ramo=${Uri.encodeComponent(selectedRamo!)}';
-    }
-    if (selectedPorte != null) {
-      url += '&porte=${Uri.encodeComponent(selectedPorte!)}';
-    }
-
-    try {
-      final response = await http.get(
-        Uri.parse(url),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept-Charset': 'UTF-8',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final data = json.decode(utf8.decode(response.bodyBytes));
-        finishList = data[0]['finishList'];
-
-        setState(() {
-          if (data.isEmpty) {
-            _hasMoreData = false;
-          } else {
-            rankingData.addAll(data
-                .where((item) => !top3RankingData
-                    .any((topItem) => topItem['pontuacaoFinal'] == item['pontuacaoFinal']))
-                .toList());
-            filteredRankingData = rankingData;
-            _hasMoreData = true;
-          }
-        });
-      } else {
-        throw Exception('Erro ao carregar dados do ranking');
-      }
-    } catch (e) {
-      print(e);
-    }
+  if (selectedRamo != null) {
+    url += '&ramo=${Uri.encodeComponent(selectedRamo!)}';
+  }
+  if (selectedPorte != null) {
+    url += '&porte=${Uri.encodeComponent(selectedPorte!)}';
   }
 
-Future<void> _launchPDF(int? empresaId) async {
-  if (empresaId == null) {
-    print('Erro: empresaId não pode ser nulo.');
-    return;
-  }
-
-  final url = Uri.parse('http://localhost:8080/pdf/getPdf/$empresaId');
   try {
-    if (await canLaunch(url.toString())) {
-      await launch(url.toString());
+    final response = await http.get(
+      Uri.parse(url),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Accept-Charset': 'UTF-8',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(utf8.decode(response.bodyBytes));
+
+      setState(() {
+        if (page == 0) {
+          rankingData.clear(); // Reinicia a lista ao aplicar filtro.
+        }
+
+        if (data.isEmpty) {
+          _hasMoreData = false;
+        } else {
+          rankingData.addAll(data
+              .where((item) => !top3RankingData.any((topItem) =>
+                  topItem['pontuacaoFinal'] == item['pontuacaoFinal']))
+              .toList());
+          filteredRankingData = rankingData;
+          _hasMoreData = true;
+        }
+      });
     } else {
-      throw 'Não foi possível abrir o PDF';
+      throw Exception('Erro ao carregar dados do ranking');
     }
   } catch (e) {
-    print('Erro ao abrir PDF: $e');
+    print(e);
   }
 }
+
+  Future<void> _launchPDF(int? empresaId) async {
+    if (empresaId == null) {
+      print('Erro: empresaId não pode ser nulo.');
+      return;
+    }
+
+    final url = Uri.parse('http://localhost:8080/pdf/getPdf/$empresaId');
+    try {
+      if (await canLaunch(url.toString())) {
+        await launch(url.toString());
+      } else {
+        throw 'Não foi possível abrir o PDF';
+      }
+    } catch (e) {
+      print('Erro ao abrir PDF: $e');
+    }
+  }
 
   void _filterRankingData(String query) {
     setState(() {
@@ -200,7 +205,7 @@ Future<void> _launchPDF(int? empresaId) async {
                               Expanded(
                                 child: Container(
                                   height: 50,
-                                  child: DropdownButtonFormField<String>( 
+                                  child: DropdownButtonFormField<String>(
                                     value: selectedRamo,
                                     hint: Text("Ramo"),
                                     isExpanded: true,
@@ -320,37 +325,53 @@ Future<void> _launchPDF(int? empresaId) async {
                             ],
                           ),
                         ),
-                        Expanded(
-                          child: ListView.builder(
-                            itemCount: filteredRankingData.length,
-                            itemBuilder: (context, index) {
-                              final item = filteredRankingData[index];
-                              return Container(
-                                color: index % 2 == 0
-                                    ? Colors.blue[50]
-                                    : Colors.white,
-                                padding: EdgeInsets.symmetric(
-                                    vertical: 8.0, horizontal: 10.0),
-                                margin: EdgeInsets.only(bottom: 8.0),
-                                child: ListTile(
-                                  title: Text(item['empresaNome']),
-                                  subtitle: Text(
-                                    'Pontuação: ${item['pontuacaoFinal']}',
-                                    style: TextStyle(color: Colors.black),
-                                  ),
-                                  trailing: ElevatedButton(
-                                    onPressed: () {
-                                      _launchPDF(item['empresaId']);
-                                    },
-                                    child: Text('Abrir PDF'),
-                                    
-                                  ),
-                                ),
-                              );
-                            },
-                            
-                          ),
-                        ),
+Expanded(
+  child: ListView.builder(
+    itemCount: filteredRankingData.length, // Garantindo que todos os itens da lista sejam exibidos
+    itemBuilder: (context, index) {
+      // Criando a lista de pontuações e empresas
+      List<Map<String, dynamic>> rankings = List.from(filteredRankingData);
+      
+      // Ordenando a lista de rankings pela pontuação (decrescente)
+      rankings.sort((a, b) => b['pontuacaoFinal'].compareTo(a['pontuacaoFinal']));
+      
+      // Pegando o item atual
+      final item = filteredRankingData[index];
+      
+      // Encontrando o ranking da empresa
+      int ranking = rankings.indexWhere((empresa) => empresa['id'] == item['id']) + 1;
+
+      return Container(
+        color: index % 2 == 0
+            ? Colors.blue[50]
+            : Colors.white,
+        padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
+        margin: EdgeInsets.only(bottom: 8.0),
+        child: ListTile(
+          leading: CircleAvatar( // Exibindo o ranking ao lado esquerdo
+            child: Text('${ranking + 3}'), // O ranking começa no 4, então somamos 3
+          ),
+          title: Text(item['empresaNome']),
+          subtitle: Text(
+            'Pontuação: ${item['pontuacaoFinal']} - Porte: ${item['porte']}',
+            style: TextStyle(color: Colors.black),
+          ),
+          trailing: ElevatedButton(
+            onPressed: () {
+              _launchPDF(item['id']);
+            },
+            child: Text('Abrir PDF'),
+          ),
+        ),
+      );
+    },
+  ),
+)
+
+
+
+
+
                       ],
                     ),
                   ),
@@ -390,8 +411,7 @@ class Top3RankingDisplay extends StatelessWidget {
                     const Color.fromARGB(255, 192, 192, 192), 2),
               ),
             ),
-          if (top3RankingData.length > 1)
-            SizedBox(width: 8),
+          if (top3RankingData.length > 1) SizedBox(width: 8),
           if (top3RankingData.isNotEmpty)
             GestureDetector(
               onTap: () => onTap(top3RankingData[0]['id']),
@@ -406,8 +426,7 @@ class Top3RankingDisplay extends StatelessWidget {
                     const Color.fromARGB(255, 255, 216, 98), 1),
               ),
             ),
-          if (top3RankingData.length > 2)
-            SizedBox(width: 8),
+          if (top3RankingData.length > 2) SizedBox(width: 8),
           if (top3RankingData.length > 2)
             GestureDetector(
               onTap: () => onTap(top3RankingData[2]['id']),
